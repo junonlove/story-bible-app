@@ -1,4 +1,4 @@
-const CACHE_NAME = 'story-bible-pwa-v6';
+const CACHE_NAME = 'story-bible-pwa-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -32,16 +32,13 @@ self.addEventListener('fetch', event => {
 
   if (isBibleData) {
     event.respondWith(
-      caches.match(event.request).then(cached => {
-        const networkFetch = fetch(event.request).then(response => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          }
-          return response;
-        }).catch(() => cached);
-        return cached || networkFetch;
-      })
+      fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
     );
   } else {
     event.respondWith(

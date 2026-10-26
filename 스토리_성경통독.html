@@ -494,22 +494,43 @@
     }
 
     .guide-tip-box {
-      background: var(--accent-soft);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 14px;
-      line-height: 1.65;
-      color: var(--text-primary);
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
       margin-bottom: 14px;
     }
-    .guide-tip-title {
+    .guide-3tier-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .guide-tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 11px;
+      padding: 11px 14px;
+      font-size: 13.8px;
+      line-height: 1.68;
+      color: var(--text-primary);
+    }
+    .guide-tier-card.tier-overview {
+      border-left: 4px solid #0284c7;
+    }
+    .guide-tier-card.tier-redemptive {
+      border-left: 4px solid #d97706;
+    }
+    .guide-tier-card.tier-christ {
+      border-left: 4px solid #e11d48;
+      background: var(--accent-soft);
+    }
+    .guide-tier-header {
+      font-size: 12.5px;
       font-weight: 800;
-      color: var(--accent);
       margin-bottom: 4px;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
     }
 
     /* 인물 관계도 & 장소 토글칩 */
@@ -960,10 +981,27 @@
           <span class="era-pill" id="ui-era-pill">원역사 시대</span>
         </div>
         <h1 class="episode-heading" id="ui-ep-title">로딩 중...</h1>
-        <div class="episode-summary" id="ui-ep-summary"></div>
+        <div class="episode-summary" id="ui-ep-summary" style="display:none;"></div>
         <div class="guide-tip-box" id="ui-ep-tip-box">
-          <div class="guide-tip-title">💡 스토리 맥락 & 통독 가이드</div>
-          <div id="ui-ep-tip"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+            <span style="font-weight:800; font-size:13.5px; color:var(--accent);">🧭 입체적 성경통독 가이드 (총체적 이해 · 구원역사 · 그리스도 중심)</span>
+            <button class="btn-icon" style="padding:4px 10px; font-size:11.5px;" onclick="openModal('modal-master-guide')">📖 성경 66권 구속사 마스터 가이드 보기</button>
+          </div>
+          <div class="guide-3tier-grid">
+            <div class="guide-tier-card tier-overview">
+              <div class="guide-tier-header" style="color:#0284c7;">📘 1. 본문 총체적 이해 (전체 줄거리 & 핵심 맥락)</div>
+              <div id="ui-guide-overview"></div>
+            </div>
+            <div class="guide-tier-card tier-redemptive">
+              <div class="guide-tier-header" style="color:#d97706;">🏛️ 2. 구원역사(구속사)적 위치와 언약의 흐름</div>
+              <div id="ui-guide-redemptive"></div>
+            </div>
+            <div class="guide-tier-card tier-christ">
+              <div class="guide-tier-header" style="color:#e11d48;">✝️ 3. 그리스도 중심적 읽기 (예표 · 그림자 · 복음적 성취)</div>
+              <div id="ui-guide-christ"></div>
+            </div>
+          </div>
+          <div id="ui-ep-tip" style="display:none;"></div>
         </div>
 
         <div class="context-chips-row">
@@ -1132,6 +1170,47 @@
           <button class="btn-icon" onclick="exportProgressCode()">📤 진도 코드 복사하기</button>
           <button class="btn-icon" onclick="importProgressCode()">📥 진도 코드 붙여넣기</button>
           <button class="btn-icon" onclick="downloadAllMemosMarkdown()">📝 전체 묵상 마크다운(.md) 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 성경 66권 구속사 & 그리스도 중심 마스터 가이드 모달 -->
+  <div class="modal-backdrop" id="modal-master-guide" onclick="if(event.target===this)closeModal('modal-master-guide')">
+    <div class="modal-box" style="max-width:740px;">
+      <div class="modal-header">
+        <h3>📖 성경 66권 총체적 구원역사 & 그리스도 중심 통독 가이드</h3>
+        <button class="btn-icon" onclick="closeModal('modal-master-guide')">✕ 닫기</button>
+      </div>
+      <div style="font-size:13.8px; line-height:1.72; color:var(--text-primary);">
+        <div style="background:var(--accent-soft); border-left:4px solid var(--accent); padding:12px 14px; border-radius:10px; margin-bottom:14px;">
+          <strong>✝️ 성경 전체를 여는 단 하나의 열쇠 (누가복음 24:27, 44)</strong><br>
+          "이에 모세와 모든 선지자의 글로 시작하여 <strong>모든 성경에 쓴 바 자기에 관한 것</strong>을 자세히 설명하시니라"<br>
+          성경 66권은 66개의 흩어진 도덕 교훈집이 아니라, <strong>창조주 하나님이 타락한 자기 백성을 예수 그리스도의 십자가와 부활을 통해 어떻게 구원하시고 하나님 나라를 완성하시는가</strong>를 기록한 <strong>단 하나의 구원 드라마(Redemptive History)</strong>입니다.
+        </div>
+
+        <h4 style="font-size:15px; font-weight:800; color:#0284c7; margin:14px 0 6px;">1️⃣ 성경 전체를 관통하는 4대 기둥과 6대 언약의 발전</h4>
+        <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+          • <strong>창조 (Creation · 제1막 전반):</strong> 하나님의 성전으로 지어진 온 우주와 하나님의 형상(왕 같은 제사장)으로 지음 받은 인간<br>
+          • <strong>타락 (Fall · 제1막 후반):</strong> 불순종으로 깨어진 관계와 사망의 지배, 그러나 즉시 선포된 <strong>원시복음(창 3:15, 여자의 후손)</strong>과 <strong>가죽옷의 은혜</strong><br>
+          • <strong>구속 (Redemption · 제2막~제14막):</strong> 점진적으로 확장되는 언약을 통해 오실 메시아를 준비하고 성취하심<br>
+          &nbsp;&nbsp;① <strong>노아 언약(창 9장):</strong> 구속사가 펼쳐질 무대(세상)를 끝까지 보존하겠다는 무지개 약속<br>
+          &nbsp;&nbsp;② <strong>아브라함 언약(창 12·15·17장):</strong> 하나님 나라의 3요소(자손·땅·통치와 만민의 복)를 쪼갠 고기(횃불)로 맹세하심<br>
+          &nbsp;&nbsp;③ <strong>시내산 언약(출 19~24장, 레위기):</strong> 구원받은 제사장 나라의 거룩한 법도와 피 제사·성막 임재<br>
+          &nbsp;&nbsp;④ <strong>다윗 언약(삼하 7장):</strong> 다윗의 후손을 통해 영원히 흔들리지 않는 왕권과 하나님 나라를 세우시겠다는 약속<br>
+          &nbsp;&nbsp;⑤ <strong>새 언약(렘 31:31, 겔 36:26):</strong> 돌판이 아닌 굳은 마음을 제하고 성령으로 마음에 새기는 사죄와 거듭남의 언약<br>
+          &nbsp;&nbsp;⑥ <strong>그리스도의 십자가 성취(복음서~서신서):</strong> 모든 구약 언약과 제사를 "내 피로 세우는 새 언약"(눅 22:20)으로 단번에 완성하심!<br>
+          • <strong>완성 (Consummation · 제15막):</strong> 어린양의 혼인잔치와 다시는 눈물·사망이 없는 새 하늘과 새 땅(새 예루살렘, 계 21~22장)
+        </div>
+
+        <h4 style="font-size:15px; font-weight:800; color:#e11d48; margin:14px 0 6px;">2️⃣ 구약과 신약을 읽을 때 꼭 기억할 『그리스도 중심적 렌즈 3가지』</h4>
+        <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+          <strong>① 도덕주의("다윗처럼 용감해지자!")를 넘어 복음("나를 위해 싸우신 참 다윗, 예수님!")으로 읽기:</strong><br>
+          성경의 위인들(아브라함, 모세, 다윗, 베드로)조차 모두 연약하고 실패한 죄인이었습니다. 성경의 진짜 주인공은 사람이 아니라, <strong>실패하는 인간을 끝까지 포기하지 않으시는 신실하신 하나님과, 우리의 실패를 대신 지신 예수 그리스도</strong>이십니다.<br><br>
+          <strong>② 예표와 성취(Type & Antitype) 발견하기:</strong><br>
+          구약의 <strong>아담·노아의 방주·모리아산 이삭과 숫양·유월절 어린양·성막과 5대 제사·광야의 만나와 반석·장대에 달린 놋뱀·기업 무를 자 보아스·왕 다윗·고난받는 종(사 53장)</strong>은 모두 장차 오실 예수 그리스도의 그림자(히 10:1)이며, 그 몸체는 그리스도이십니다(골 2:17).<br><br>
+          <strong>③ '이미(Already)'와 '아직(Not Yet)'의 하나님 나라 소망으로 오늘을 살기:</strong><br>
+          예수님의 초림(십자가와 부활)으로 하나님 나라는 <strong>이미</strong> 우리 안에 시작되었고, 재림의 날에 <strong>완성</strong>될 것입니다. 이 소망 안에서 오늘 우리의 가정과 일터, 교회가 사도행전 29장을 써 내려갑니다.
         </div>
       </div>
     </div>
@@ -1454,6 +1533,13 @@
       document.getElementById('ui-ep-title').textContent = ep.title;
       document.getElementById('ui-ep-summary').textContent = ep.summary;
       document.getElementById('ui-ep-tip').textContent = ep.tip;
+
+      const ovEl = document.getElementById('ui-guide-overview');
+      const rdEl = document.getElementById('ui-guide-redemptive');
+      const chEl = document.getElementById('ui-guide-christ');
+      if (ovEl) ovEl.textContent = ep.overview || (ep.summary + ' ' + ep.tip);
+      if (rdEl) rdEl.textContent = ep.redemptive || '';
+      if (chEl) chEl.textContent = ep.christ || '';
 
       // 등장인물 관계도 렌더링
       const charGrid = document.getElementById('ui-char-grid');

@@ -1643,55 +1643,29 @@
     async function openMobileConnectModal() {
       openModal('modal-mobile');
       const box = document.getElementById('mobile-connect-body');
-      let mobileUrl = '';
-      if (location.protocol.startsWith('http')) {
-        try {
-          const res = await fetch('/api/server-info');
-          if (res.ok) {
-            const info = await res.json();
-            mobileUrl = info.mobile_url;
-          }
-        } catch (e) {}
-      }
+      const cloudUrl = 'https://junonlove.github.io/story-bible-app/';
+      const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(cloudUrl)}`;
 
-      if (mobileUrl) {
-        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mobileUrl)}`;
-        box.innerHTML = `
-          <div style="text-align:center; padding:10px 0 16px;">
-            <div style="font-weight:800; font-size:15px; color:var(--text-primary); margin-bottom:10px;">
-              아래 QR코드를 스마트폰 카메라로 비추거나 주소를 입력하세요!
-            </div>
-            <img src="${qrImg}" alt="QR Code" style="width:180px; height:180px; border-radius:12px; border:4px solid #fff; box-shadow:var(--shadow-sm); margin-bottom:10px;" onerror="this.style.display='none'">
-            <div style="font-size:18px; font-weight:800; color:var(--accent); background:var(--bg-main); padding:10px 14px; border-radius:10px; display:inline-block; border:1px solid var(--border-color);">
-              ${mobileUrl}
-            </div>
+      box.innerHTML = `
+        <div style="text-align:center; padding:8px 0 16px;">
+          <div style="font-weight:800; font-size:15px; color:var(--text-primary); margin-bottom:10px;">
+            🌐 언제 어디서나(LTE/5G·와이파이 밖) 열리는 전용 웹앱 주소
           </div>
-          <div style="background:var(--bg-main); padding:14px; border-radius:12px; border:1px solid var(--border-color); font-size:13px;">
-            <strong>💡 스마트폰 전용 앱처럼 설치하는 팁:</strong><br>
-            1. 스마트폰을 컴퓨터와 <strong>같은 와이파이(Wi-Fi)</strong>에 연결합니다.<br>
-            2. 아이폰(Safari) 또는 갤럭시(Chrome)에서 위 주소로 접속합니다.<br>
-            3. 브라우저 메뉴의 <strong>[공유 → 홈 화면에 추가]</strong>를 누르면 스마트폰 바탕화면에 <strong>『스토리성경』 앱 아이콘</strong>이 생기고, 컴퓨터와 통독 진도·묵상이 실시간으로 자동 연동됩니다!
+          <img src="${qrImg}" alt="QR Code" style="width:180px; height:180px; border-radius:12px; border:4px solid #fff; box-shadow:var(--shadow-sm); margin-bottom:10px;" onerror="this.style.display='none'">
+          <div>
+            <a href="${cloudUrl}" target="_blank" style="font-size:16px; font-weight:800; color:var(--accent); background:var(--bg-main); padding:10px 14px; border-radius:10px; display:inline-block; border:1px solid var(--border-color); text-decoration:none;">
+              ${cloudUrl}
+            </a>
           </div>
-        `;
-      } else {
-        box.innerHTML = `
-          <div style="background:var(--bg-main); padding:16px; border-radius:12px; border:1px solid var(--border-color);">
-            <div style="font-weight:800; font-size:15px; color:var(--accent); margin-bottom:8px;">
-              🚀 1초 만에 스마트폰과 실시간 연결하기
-            </div>
-            <p style="margin-bottom:10px;">
-              현재는 컴퓨터 로컬 파일로 열려 있습니다. 스마트폰에서도 똑같이 열고 진도를 실시간 공유하려면:
-            </p>
-            <ol style="padding-left:18px; margin-bottom:12px;">
-              <li>볼트 폴더에 있는 <strong><code>스토리성경_실행.command</code></strong> 파일을 더블클릭하세요.</li>
-              <li>자동으로 열리는 창에서 <strong>[📱 폰 연결]</strong> 버튼을 누르면 <strong>스마트폰 접속용 QR코드와 주소</strong>가 나타나며, 폰과 컴퓨터의 진도·묵상이 자동 동기화됩니다!</li>
-            </ol>
-            <div style="font-size:12.5px; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:8px;">
-              ※ 와이파이 없이 외부(이동 중)에서도 스마트폰 단독으로 보시려면 구글 드라이브/파일 앱에 <code>스토리_성경통독.html</code>과 <code>bible_story_data.js</code>를 넣거나 개인 GitHub Pages에 올려 언제 어디서나 열 수 있습니다.
-            </div>
-          </div>
-        `;
-      }
+        </div>
+        <div style="background:var(--bg-main); padding:14px; border-radius:12px; border:1px solid var(--border-color); font-size:13px;">
+          <strong>📱 스마트폰 홈 화면에 앱으로 설치하는 방법:</strong><br>
+          1. 스마트폰 카메라로 위 <strong>QR코드</strong>를 비추거나 주소로 접속합니다.<br>
+          2. <strong>아이폰(Safari):</strong> 하단 가운데 공유 버튼 <code>[↑]</code> → <strong>[홈 화면에 추가]</strong><br>
+          3. <strong>갤럭시(Chrome):</strong> 우측 상단 메뉴 <code>[⋮]</code> → <strong>[홈 화면에 추가 / 앱 설치]</strong><br>
+          4. 설치 후에는 컴퓨터가 꺼져 있어도, 집 밖이나 비행기 모드(오프라인)에서도 언제든 스마트폰 바탕화면의 <strong>『스토리성경』</strong> 아이콘으로 즉시 열립니다!
+        </div>
+      `;
     }
 
     function closeModal(id) {

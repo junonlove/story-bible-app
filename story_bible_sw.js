@@ -1,4 +1,4 @@
-const CACHE_NAME = 'story-bible-pwa-v1';
+const CACHE_NAME = 'story-bible-pwa-v2';
 const ASSETS = [
   './',
   './index.html',

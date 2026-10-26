@@ -2,9 +2,9 @@
 <html lang="ko" data-theme="sepia">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="스토리 성경통독">
   <meta name="theme-color" content="#1e293b">
   <link rel="manifest" href="story_bible_manifest.json">
@@ -86,15 +86,62 @@
     .app-header {
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 200;
       background: var(--bg-card);
       border-bottom: 1px solid var(--border-color);
-      padding: 10px 16px;
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       box-shadow: var(--shadow-sm);
+    }
+
+    /* 모바일 하단 고정 네비게이션 탭바 */
+    .mobile-bottom-bar {
+      display: none;
+    }
+    @media (max-width: 960px) {
+      .mobile-bottom-bar {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 250;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+      }
+      .mob-tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 5px 2px;
+        border-radius: 10px;
+        font-family: inherit;
+        cursor: pointer;
+      }
+      .mob-tab-btn:active, .mob-tab-btn.active {
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .mob-tab-icon {
+        font-size: 18px;
+        line-height: 1.1;
+      }
+      .mob-tab-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+      }
     }
 
     .header-left {
@@ -169,11 +216,14 @@
       }
       .sidebar {
         position: fixed;
-        top: 57px;
+        top: 0;
         left: 0;
         bottom: 0;
-        width: min(88vw, 360px);
-        z-index: 150;
+        height: 100vh;
+        padding-top: calc(56px + env(safe-area-inset-top, 0px));
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        width: min(90vw, 370px);
+        z-index: 190;
         transform: translateX(-102%);
         transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: var(--shadow-md);
@@ -184,9 +234,9 @@
       .sidebar-backdrop {
         display: none;
         position: fixed;
-        inset: 57px 0 0 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 140;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 185;
       }
       .sidebar-backdrop.open {
         display: block;
@@ -868,7 +918,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="progress-summary-box">
         <div class="progress-top">
-          <span>🏆 나의 통독 진도율</span>
+          <span onclick="changeReaderName()" style="cursor:pointer;" title="클릭하여 독자 이름 변경">🏆 <span id="ui-reader-name">나의</span> 통독 진도율 ✎</span>
           <span id="progress-percent">0.0%</span>
         </div>
         <div class="progress-bar-bg">
@@ -877,6 +927,10 @@
         <div class="progress-sub">
           <span id="progress-ep-count">에피소드 0 / 78 완료</span>
           <span id="progress-ch-count">0 / 1,189장</span>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:6px;">
+          <button class="btn-icon" style="flex:1; justify-content:center; padding:6px; font-size:12px;" onclick="shareMyProgress()">💌 카톡으로 내 진도/묵상 나누기</button>
+          <button class="btn-icon" style="padding:6px 10px; font-size:12px;" onclick="shareAppLink()">🔗 앱 공유</button>
         </div>
       </div>
 
@@ -957,13 +1011,37 @@
       </section>
 
       <!-- 하단 장/에피소드 이동 바 -->
-      <div class="bottom-nav-card">
+      <div class="bottom-nav-card" style="margin-bottom: 30px;">
         <button class="btn-icon" onclick="movePrevChapter()">← 이전 장</button>
         <button class="btn-complete-big" id="btn-complete-ch-bottom" onclick="completeAndNextChapter()">✅ 이 장 읽음 완료 & 다음 장으로 →</button>
         <button class="btn-icon" onclick="moveNextEpisode()">다음 에피소드 ⏭</button>
       </div>
     </main>
   </div>
+
+  <!-- 스마트폰 전용 하단 고정 네비게이션 탭바 -->
+  <nav class="mobile-bottom-bar" id="mobile-bottom-bar">
+    <button class="mob-tab-btn" onclick="openSidebarWithTab('story')">
+      <span class="mob-tab-icon">🎬</span>
+      <span class="mob-tab-label">15막 스토리</span>
+    </button>
+    <button class="mob-tab-btn" onclick="openSidebarWithTab('books')">
+      <span class="mob-tab-icon">📚</span>
+      <span class="mob-tab-label">성경 66권</span>
+    </button>
+    <button class="mob-tab-btn" id="mob-btn-mode" onclick="toggleReadingMode()">
+      <span class="mob-tab-icon">📖</span>
+      <span class="mob-tab-label">스토리뷰</span>
+    </button>
+    <button class="mob-tab-btn" onclick="openModal('modal-search')">
+      <span class="mob-tab-icon">🔍</span>
+      <span class="mob-tab-label">말씀검색</span>
+    </button>
+    <button class="mob-tab-btn" onclick="openModal('modal-settings')">
+      <span class="mob-tab-icon">⚙️</span>
+      <span class="mob-tab-label">설정·공유</span>
+    </button>
+  </nav>
 
   <!-- 검색 모달 -->
   <div class="modal-backdrop" id="modal-search" onclick="if(event.target===this)closeModal('modal-search')">
@@ -1009,11 +1087,15 @@
       </div>
 
       <div style="margin-bottom:18px; padding-top:14px; border-top:1px solid var(--border-color);">
-        <div style="font-weight:800; font-size:14px; margin-bottom:6px; color:var(--accent);">📱 스마트폰 & 컴퓨터에서 함께 쓰는 방법</div>
-        <div style="font-size:13px; color:var(--text-secondary); line-height:1.65; background:var(--bg-main); padding:12px; border-radius:10px;">
-          1. <strong>컴퓨터에서:</strong> 볼트 폴더의 <code>스토리_성경통독.html</code>을 더블클릭하면 인터넷 없이도 즉시 열립니다.<br>
-          2. <strong>집/교회 와이파이로 폰에서 바로 열기:</strong> 터미널(또는 실행 파일)로 로컬 서버를 켜면 스마트폰 사파리/크롬에서 접속해 <strong>[홈 화면에 추가]</strong>하여 전용 앱처럼 전체화면으로 읽을 수 있습니다.<br>
-          3. <strong>기기 간 통독 진도 & 묵상 동기화:</strong> 아래 [진도 데이터 복사/불러오기]로 폰과 컴퓨터의 진도를 1초 만에 옮길 수 있습니다.
+        <div style="font-weight:800; font-size:14px; margin-bottom:8px; color:var(--accent);">👫 아내(가족·성도)와 함께 사용하기 & 프로필 설정</div>
+        <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center; flex-wrap:wrap;">
+          <button class="btn-icon" onclick="changeReaderName()">👤 내 이름(프로필) 변경</button>
+          <button class="btn-icon active" onclick="shareAppLink()">💌 아내/가족에게 이 앱 보내기</button>
+          <button class="btn-icon" onclick="shareMyProgress()">🎉 오늘 읽은 진도·묵상 카톡 공유</button>
+        </div>
+        <div style="font-size:12.5px; color:var(--text-secondary); line-height:1.6; background:var(--bg-main); padding:11px; border-radius:10px;">
+          💡 <strong>진도가 섞이지 않나요?</strong><br>
+          아내분이나 가족에게 똑같은 앱 주소(<code>https://junonlove.github.io/story-bible-app/</code>)를 보내주셔도, <strong>통독 진도와 묵상 기록은 각자의 스마트폰 안에 독립적으로 따로 저장</strong>되므로 절대 섞이지 않습니다! 각자 폰에서 편하게 읽으시고 [오늘 읽은 진도·묵상 카톡 공유] 버튼으로 서로 응원해 보세요.
         </div>
       </div>
 
@@ -1144,15 +1226,26 @@
 
       const modeBtn = document.getElementById('btn-mode-toggle');
       if (modeBtn) {
-        modeBtn.textContent = state.readingMode === 'story' ? '📚 스토리북 뷰' : '📑 절별 성경 뷰';
+        modeBtn.innerHTML = state.readingMode === 'story' ? '📚 <span class="hide-mobile">스토리북 뷰</span>' : '📑 <span class="hide-mobile">절별 성경 뷰</span>';
         modeBtn.classList.toggle('active', state.readingMode === 'story');
       }
 
       const vnumBtn = document.getElementById('btn-vnum-toggle');
       if (vnumBtn) {
-        vnumBtn.textContent = state.hideVerseNum ? '🔢 절번호 꺼짐' : '🔢 절번호 켜짐';
+        vnumBtn.innerHTML = state.hideVerseNum ? '🔢 <span class="hide-mobile">절번호 꺼짐</span>' : '🔢 <span class="hide-mobile">절번호 켜짐</span>';
         vnumBtn.classList.toggle('active', !state.hideVerseNum);
       }
+
+      const mobModeBtn = document.getElementById('mob-btn-mode');
+      if (mobModeBtn) {
+        mobModeBtn.innerHTML = state.readingMode === 'story'
+          ? '<span class="mob-tab-icon">📖</span><span class="mob-tab-label">스토리뷰</span>'
+          : '<span class="mob-tab-icon">📑</span><span class="mob-tab-label">절별뷰</span>';
+        mobModeBtn.classList.toggle('active', state.readingMode === 'story');
+      }
+
+      const rNameEl = document.getElementById('ui-reader-name');
+      if (rNameEl) rNameEl.textContent = state.readerName || '나의';
     }
 
     function setTheme(theme) {
@@ -1631,6 +1724,58 @@
       const open = typeof force === 'boolean' ? force : !sb.classList.contains('open');
       sb.classList.toggle('open', open);
       bd.classList.toggle('open', open);
+    }
+
+    function openSidebarWithTab(tab) {
+      switchNavTab(tab);
+      toggleSidebar(true);
+    }
+
+    function changeReaderName() {
+      const cur = state.readerName || '나의';
+      const name = prompt('앱에 표시할 독자 이름을 입력해 주세요 (예: 이종진 목사, 사모님, 사랑하는 아내):', cur === '나의' ? '' : cur);
+      if (name !== null) {
+        state.readerName = name.trim() || '나의';
+        const el = document.getElementById('ui-reader-name');
+        if (el) el.textContent = state.readerName;
+        saveState();
+      }
+    }
+
+    function shareAppLink() {
+      const url = 'https://junonlove.github.io/story-bible-app/';
+      const text = `📖 [스토리 성경통독 · 개역개정 15막 드라마]\n성경 66권 전체를 구속사 15막 이야기 흐름으로 쉽게 읽고 이해하는 성경통독 앱입니다.\n(각자의 폰에서 독립된 진도로 기록됩니다!)\n👉 ${url}`;
+      if (navigator.share) {
+        navigator.share({ title: '스토리 성경통독', text: text, url: url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('앱 초대 메시지와 링크가 복사되었습니다! 카카오톡 채팅창에 붙여넣어 보내보세요.');
+        });
+      }
+    }
+
+    function shareMyProgress() {
+      const bName = BOOK_MAP[state.currentBook] ? BOOK_MAP[state.currentBook].name : state.currentBook;
+      const ep = EP_MAP[state.currentEpId];
+      const doneChapters = Object.keys(state.readChapters).length;
+      const pct = ((doneChapters / 1189) * 100).toFixed(1);
+      const rName = (state.readerName && state.readerName !== '나의') ? state.readerName : '나';
+      const memo = (state.memos[`${state.currentBook}:${state.currentChapter}`] || '').trim();
+      let msg = `💌 [${rName}의 스토리 성경통독 나눔]\n`;
+      msg += `📍 현재 읽는 곳: ${bName} ${state.currentChapter}장 (${ep ? ep.title : ''})\n`;
+      msg += `🏆 전체 통독 진도: ${pct}% (${doneChapters}/1,189장 완료)\n`;
+      if (memo) {
+        msg += `✍️ 오늘의 한 줄 묵상:\n"${memo}"\n`;
+      }
+      msg += `\n👉 함께 읽기: https://junonlove.github.io/story-bible-app/`;
+
+      if (navigator.share) {
+        navigator.share({ title: `${rName}의 스토리 성경통독`, text: msg }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(msg).then(() => {
+          alert('오늘 읽은 진도와 묵상 나눔 글이 복사되었습니다! 카카오톡에 붙여넣어 공유해 보세요.');
+        });
+      }
     }
 
     function openModal(id) {

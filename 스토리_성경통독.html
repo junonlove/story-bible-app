@@ -2543,7 +2543,16 @@
     window.addEventListener('DOMContentLoaded', () => {
       initApp();
       if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-        navigator.serviceWorker.register('./story_bible_sw.js').catch(() => {});
+        navigator.serviceWorker.register('./story_bible_sw.js', { updateViaCache: 'none' }).then(reg => {
+          reg.update();
+        }).catch(() => {});
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       }
     });
   </script>

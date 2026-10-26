@@ -766,6 +766,13 @@
       background: rgba(250, 204, 21, 0.35);
       padding: 1px 0;
     }
+    .v-text.tts-active, .verse-row.tts-active {
+      background: rgba(245, 158, 11, 0.24) !important;
+      outline: 2px solid var(--accent);
+      border-radius: 6px;
+      padding: 2px 4px;
+      transition: all 0.2s;
+    }
 
     /* 묵상 메모장 */
     .memo-card {
@@ -962,7 +969,13 @@
         <div class="context-chips-row">
           <button class="btn-icon" onclick="toggleContextDrawer('chars')">👥 등장인물 관계도 보기</button>
           <button class="btn-icon" onclick="toggleContextDrawer('places')">🗺️ 주요 지명 & 시대 연대표</button>
-          <button class="btn-icon" id="btn-tts" onclick="toggleSpeech()">🔊 본문 듣기(오디오)</button>
+          <button class="btn-icon" id="btn-tts" onclick="toggleSpeech()">🔊 성경 낭독 듣기</button>
+          <select id="tts-rate-select" onchange="changeTtsRate(this.value)" style="padding:7px 8px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-elevated); color:var(--text-primary); font-size:12.5px; font-weight:700; cursor:pointer;" title="낭독 속도 조절">
+            <option value="0.85">🐢 0.85x (차분히)</option>
+            <option value="0.94" selected>🎙️ 0.94x (자연호흡)</option>
+            <option value="1.05">🏃 1.05x (약간빠름)</option>
+            <option value="1.2">⚡ 1.20x (빠름)</option>
+          </select>
         </div>
 
         <div class="context-drawer" id="drawer-chars">
@@ -1609,21 +1622,21 @@
           } else if (idx > 0 && idx % 5 === 0) {
             html += '</div><div class="story-paragraph">';
           }
-          html += `<span class="v-num">${v.v}</span><span class="v-text ${hl}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span> `;
+          html += `<span class="v-num">${v.v}</span><span class="v-text ${hl}" id="v-el-${idx}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span> `;
         });
         html += '</div>';
         bodyEl.innerHTML = html;
       } else {
         // 절별 모드
         let html = '';
-        verses.forEach(v => {
+        verses.forEach((v, idx) => {
           const vKey = `${bAbbr}:${chNum}:${v.v}`;
           const hl = state.highlights[vKey] ? 'highlighted' : '';
           if (v.h) {
             html += `<div class="pericope-heading">🔖 ${escapeHtml(v.h)}</div>`;
           }
           html += `
-            <div class="verse-row">
+            <div class="verse-row" id="v-el-${idx}">
               <span class="v-num">${v.v}절</span>
               <span class="v-text ${hl}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span>
             </div>
@@ -1890,8 +1903,81 @@
       `;
     }
 
-    // 음성 낭독 (TTS)
+    // =========================================================================
+    // 성경 문어체 전용 자연 호흡 낭독 엔진 (Prosody & Verse-by-Verse Highlighter)
+    // =========================================================================
     let isSpeaking = false;
+    let ttsCurrentIdx = 0;
+    let ttsRate = 0.94;
+    let preferredKoVoice = null;
+
+    function initKoreanVoice() {
+      if (!('speechSynthesis' in window)) return;
+      const pickVoice = () => {
+        const voices = window.speechSynthesis.getVoices() || [];
+        const koVoices = voices.filter(v => v.lang && (v.lang.startsWith('ko') || v.lang.includes('KR')));
+        if (koVoices.length === 0) return;
+        // 고품질 자연 음성 우선순위: Natural / Neural / Siri / Yuna / Google 한국의
+        preferredKoVoice =
+          koVoices.find(v => /Natural|Neural|Online|Premium|Enhanced/i.test(v.name)) ||
+          koVoices.find(v => /Google|Siri|Yuna|유나|서연/i.test(v.name)) ||
+          koVoices[0];
+      };
+      pickVoice();
+      window.speechSynthesis.onvoiceschanged = pickVoice;
+    }
+
+    function formatBiblicalTextForSpeech(rawText, headingText) {
+      let s = (rawText || '').trim();
+      // 1. 괄호 안의 병행구절 참조나 (셀라) 제거하여 낭독 흐름 방해 방지
+      s = s.replace(/\([^)]*\)/g, ' ');
+
+      // 2. 대화 도입부 뒤에 자연스러운 쉼표(, ) 호흡 삽입
+      s = s.replace(/(이르시되|이르되|말씀하시되|말씀하여 이르시되|대답하여 이르시되|대답하되|부르짖어 이르되|선포하여 이르되|명령하여 이르시되|기도하여 이르되|노래하여 이르되|소리 질러 이르되|물어 이르되|그에게 이르되|그들에게 이르시되)\s+/g, '$1, ');
+
+      // 3. 성경 접속사 및 감탄사 뒤에 숨 고르기 쉼표 삽입
+      s = s.replace(/\b(그러므로|그러나|그런즉|그리하여|보라|진실로 진실로 너희에게 이르노니|내가 진실로 너희에게 이르노니|그 때에|이 후에|이에)\s+/g, '$1, ');
+
+      // 4. 문장 중간의 종결형·전환형 어미 뒤에 호흡 부여 (문장 끝이 아닌 경우)
+      s = s.replace(/(하시니라|하였더라|하더라|이니라|이더라|있었더라|없었더라|되었더라|하리라|하리로다|도다|노라|니라|소서|지어다)\s+(?=[가-힣])/g, '$1. ');
+
+      // 5. 긴 연결 어미 뒤에 미세 호흡(, ) 추가
+      s = s.replace(/(하시며|하시고|아니하며|아니하고|인하여|말미암아|가운데에|위하여)\s+/g, '$1, ');
+
+      // 6. 절 끝에 명확한 마침표 추가
+      if (!/[.!?]$/.test(s)) {
+        s += '.';
+      }
+
+      // 중복 쉼표·공백 정리
+      s = s.replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').replace(/\s{2,}/g, ' ').trim();
+
+      if (headingText) {
+        const cleanHeading = headingText.replace(/\([^)]*\)/g, '').trim();
+        return `${cleanHeading}. ${s}`;
+      }
+      return s;
+    }
+
+    function highlightTtsVerse(idx) {
+      document.querySelectorAll('.tts-active').forEach(el => el.classList.remove('tts-active'));
+      if (idx === null || idx === undefined) return;
+      const target = document.getElementById(`v-el-${idx}`);
+      if (target) {
+        target.classList.add('tts-active');
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function changeTtsRate(val) {
+      ttsRate = parseFloat(val) || 0.94;
+      if (isSpeaking) {
+        const resumeIdx = ttsCurrentIdx;
+        window.speechSynthesis.cancel();
+        speakVerseAt(resumeIdx);
+      }
+    }
+
     function toggleSpeech() {
       if (!('speechSynthesis' in window)) {
         alert('이 브라우저는 음성 낭독(TTS)을 지원하지 않습니다.');
@@ -1901,32 +1987,78 @@
         stopSpeech();
         return;
       }
+      initKoreanVoice();
+      isSpeaking = true;
+      ttsCurrentIdx = 0;
+      const btn = document.getElementById('btn-tts');
+      if (btn) {
+        btn.textContent = '⏹ 낭독 정지';
+        btn.classList.add('active');
+      }
+
+      // 장 제목 먼저 안내 후 1절부터 순차 낭독
       const bAbbr = state.currentBook;
       const chNum = state.currentChapter;
       const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
-      const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
-      const fullText = `${bName} ${chNum}장. ` + verses.map(v => v.t).join(' ');
-
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(fullText);
-      utter.lang = 'ko-KR';
-      utter.rate = 1.0;
-      utter.onend = () => {
-        isSpeaking = false;
-        document.getElementById('btn-tts').textContent = '🔊 본문 듣기(오디오)';
+
+      const introUtter = new SpeechSynthesisUtterance(`${bName}, 제 ${chNum}장 말씀입니다.`);
+      introUtter.lang = 'ko-KR';
+      if (preferredKoVoice) introUtter.voice = preferredKoVoice;
+      introUtter.rate = ttsRate;
+      introUtter.onend = () => {
+        if (isSpeaking) speakVerseAt(0);
       };
-      isSpeaking = true;
-      document.getElementById('btn-tts').textContent = '⏹ 낭독 정지';
+      window.speechSynthesis.speak(introUtter);
+    }
+
+    function speakVerseAt(idx) {
+      if (!isSpeaking) return;
+      const bAbbr = state.currentBook;
+      const chNum = state.currentChapter;
+      const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
+
+      if (idx >= verses.length) {
+        stopSpeech();
+        return;
+      }
+
+      ttsCurrentIdx = idx;
+      highlightTtsVerse(idx);
+
+      const v = verses[idx];
+      const speechScript = formatBiblicalTextForSpeech(v.t, v.h);
+      const utter = new SpeechSynthesisUtterance(speechScript);
+      utter.lang = 'ko-KR';
+      if (preferredKoVoice) utter.voice = preferredKoVoice;
+      utter.rate = ttsRate;
+      utter.pitch = 1.0;
+
+      utter.onend = () => {
+        if (isSpeaking) {
+          speakVerseAt(idx + 1);
+        }
+      };
+      utter.onerror = () => {
+        if (isSpeaking) {
+          speakVerseAt(idx + 1);
+        }
+      };
+
       window.speechSynthesis.speak(utter);
     }
 
     function stopSpeech() {
+      isSpeaking = false;
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
-      isSpeaking = false;
+      highlightTtsVerse(null);
       const btn = document.getElementById('btn-tts');
-      if (btn) btn.textContent = '🔊 본문 듣기(오디오)';
+      if (btn) {
+        btn.textContent = '🔊 성경 낭독 듣기';
+        btn.classList.remove('active');
+      }
     }
 
     // 기기 간 동기화 코드 내보내기 / 가져오기

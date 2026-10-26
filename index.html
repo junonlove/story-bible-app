@@ -966,14 +966,27 @@
         </div>
 
         <div class="context-drawer" id="drawer-chars">
-          <div style="font-size:12.5px; font-weight:800; color:var(--text-muted);">이 막(Act)의 중심 인물 관계도</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:13px; font-weight:800; color:var(--accent);">🕸️ 구속사 인물 관계도 & 계보 다이어그램 (노드를 터치해보세요)</span>
+            <span style="font-size:11px; color:var(--text-muted);">인터랙티브 그래픽</span>
+          </div>
+          <div id="ui-char-diagram" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:10px; overflow-x:auto; margin-bottom:10px;"></div>
+          <div id="ui-char-detail" style="background:var(--bg-card); border-left:4px solid var(--accent); border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:10px; display:none;"></div>
           <div class="char-grid" id="ui-char-grid"></div>
         </div>
 
         <div class="context-drawer" id="drawer-places">
-          <div style="font-size:12.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px;">📍 주요 무대 및 구속사 연대표 위치</div>
-          <div id="ui-places-list" style="font-size:13.5px; font-weight:600; margin-bottom:10px;"></div>
-          <div id="ui-timeline-mini" style="font-size:12.5px; color:var(--text-secondary);"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:13px; font-weight:800; color:var(--accent);">🗺️ 성경 지리 아틀라스 (이동 경로 & 주요 사건 지명)</span>
+            <span style="font-size:11px; color:var(--text-muted);">지명 핀(Pin)을 터치해보세요</span>
+          </div>
+          <div id="ui-bible-map-box" style="background:#e6dec8; border:1px solid var(--border-color); border-radius:14px; overflow:hidden; position:relative; margin-bottom:10px;"></div>
+          <div id="ui-place-detail" style="background:var(--bg-card); border-left:4px solid #0284c7; border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:12px;"></div>
+          <div id="ui-places-list" style="font-size:13px; font-weight:600; margin-bottom:14px;"></div>
+
+          <div style="font-size:13px; font-weight:800; color:var(--accent); margin-bottom:8px;">⏳ 구속사 15막 마스터 연대표 & 제국 배경</div>
+          <div id="ui-timeline-graphic" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:12px; overflow-x:auto;"></div>
+          <div id="ui-timeline-mini" style="display:none;"></div>
         </div>
       </section>
 
@@ -1437,6 +1450,10 @@
           <div class="char-rel">${c.rel}</div>
         </div>
       `).join('');
+
+      renderVisualCharacterGraph(act);
+      renderVisualBibleMap(act);
+      renderVisualTimeline(act);
 
       // 장소 및 타임라인 렌더링
       document.getElementById('ui-places-list').innerHTML =
@@ -1959,6 +1976,551 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 전문가급 인터랙티브 인물관계도 (SVG Network) & 성경 지리 아틀라스 (SVG Map) & 연대표
+    // =========================================================================
+    const ACT_VISUAL_DATA = {
+      1: {
+        nodes: [
+          { id: 'god', label: '창조주 하나님', sub: '언약·생명의 주권자', x: 340, y: 46, color: '#b45309', root: true, desc: '말씀으로 천지를 창조하시고, 타락한 인간에게 가죽옷과 여자의 후손(창 3:15)을 약속하신 구원의 주권자' },
+          { id: 'adam', label: '아담 & 하와', sub: '인류의 시조', x: 130, y: 145, color: '#059669', desc: '하나님의 형상대로 지음 받아 에덴을 다스렸으나 선악과 불순종 후 가죽옷의 은혜를 입음' },
+          { id: 'cain', label: '가인 · 아벨 · 셋', sub: '예배자와 계보의 분기', x: 130, y: 245, color: '#475569', desc: '피 제사를 드린 아벨의 순교 이후 셋과 에녹의 경건한 계보가 여호와의 이름을 부름' },
+          { id: 'noah', label: '노아와 방주', sub: '무지개 보존 언약', x: 340, y: 195, color: '#0284c7', desc: '당대에 완전한 자로 방주를 지어 심판을 통과하고 셈·함·야벳을 통해 새 인류를 시작함' },
+          { id: 'job', label: '우스 땅의 욥', sub: '고난 속의 신앙', x: 545, y: 145, color: '#7c3aed', desc: '까닭 없는 고난 속에서 친구들의 인과응보론을 넘어 폭풍 가운데 임하신 창조주를 눈으로 뵈옴' },
+          { id: 'babel', label: '바벨탑 인류', sub: '교만과 흩어짐', x: 545, y: 245, color: '#dc2626', desc: '자기 이름을 내고 흩어짐을 면하려다 언어가 혼잡해져 온 땅으로 흩어짐(창 11장)' }
+        ],
+        edges: [
+          { from: 'god', to: 'adam', label: '형상 창조 · 가죽옷 언약' },
+          { from: 'adam', to: 'cain', label: '출생 · 계보 이어짐' },
+          { from: 'god', to: 'noah', label: '방주 구원 · 무지개 언약' },
+          { from: 'god', to: 'job', label: '폭풍 속 현현 · 갑절 회복' },
+          { from: 'noah', to: 'babel', label: '열방 번성 후 교만' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '에덴과 티그리스·유프라테스', x: 640, y: 210, desc: '네 강이 발원하던 인류 창조와 언약의 동산 (메소포타미아 유역)' },
+          { name: '아라랏 산', x: 580, y: 75, desc: '홍수 심판 후 노아의 방주가 머문 구원과 재출발의 산 (창 8:4)' },
+          { name: '시날 평지 (바벨)', x: 655, y: 235, desc: '인류가 하늘에 닿는 탑을 쌓다 언어가 혼잡해져 흩어진 곳 (창 11장)' },
+          { name: '우스 땅 (에돔 동방)', x: 435, y: 300, desc: '동방의 의인 욥이 고난을 통과하며 창조주 하나님을 대면한 무대 (욥 1:1)' }
+        ],
+        empire: '원역사 · 고대 메소포타미아 초기 문명기'
+      },
+      2: {
+        nodes: [
+          { id: 'god', label: '전능하신 하나님(엘 샤다이)', sub: '횃불 언약 · 여호와 이레', x: 340, y: 42, color: '#059669', root: true, desc: '아브라함을 부르시고 홀로 쪼갠 고기 사이로 지나가시며 자손과 땅, 만민의 복을 약속하심' },
+          { id: 'abra', label: '아브라함 & 사라', sub: '믿음의 조상 (1대)', x: 340, y: 122, color: '#d97706', desc: '갈대아 우르를 떠나 가나안에 들어와 백 세에 이삭을 얻고 모리아산 시험에 순종함' },
+          { id: 'lot', label: '조카 롯 / 이스마엘', sub: '소돔 이주 · 광야 계보', x: 115, y: 132, color: '#64748b', desc: '눈에 보기에 좋은 소돔을 택한 롯과 육신의 생각으로 낳은 이스마엘' },
+          { id: 'isaac', label: '이삭 & 리브가', sub: '약속의 아들 (2대)', x: 340, y: 196, color: '#0284c7', desc: '모리아산 제단에서 순종하고 우물을 양보하며 백 배의 복을 받은 평화의 족장' },
+          { id: 'jacob', label: '야곱 (이스라엘)', sub: '12지파의 아비 (3대)', x: 220, y: 266, color: '#7c3aed', desc: '벧엘의 사닥다리 약속과 얍복강 씨름을 통해 속이는 자에서 이스라엘로 변화됨' },
+          { id: 'joseph', label: '요셉 & 유다 (12형제)', sub: '총리 구원 · 왕의 계보 (4대)', x: 485, y: 266, color: '#e11d48', desc: '팔려간 요셉은 애굽 총리가 되어 생명을 구원하고, 회개한 유다는 메시아 계보를 이음' }
+        ],
+        edges: [
+          { from: 'god', to: 'abra', label: '부르심 · 쪼갠 고기 언약' },
+          { from: 'abra', to: 'lot', label: '분가 · 중보 구출' },
+          { from: 'abra', to: 'isaac', label: '백 세의 약속 계승' },
+          { from: 'isaac', to: 'jacob', label: '장자 축복 계승' },
+          { from: 'jacob', to: 'joseph', label: '12지파 탄생 · 애굽 이주' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '1. 갈대아 우르', x: 685, y: 265, desc: '아브람이 하나님의 첫 부르심을 받고 떠난 메소포타미아 남부 도시 (창 11:31)' },
+          { name: '2. 하란', x: 525, y: 120, desc: '아브라함이 아버지 데라가 죽은 후 말씀을 따라 가나안으로 출발한 곳이자 야곱이 20년간 머문 곳' },
+          { name: '3. 세겜 · 벧엘', x: 398, y: 238, desc: '아브라함이 첫 제단을 쌓고 야곱이 하늘 사닥다리 환상을 본 언약의 땅 중심부' },
+          { name: '4. 헤브론 · 브엘세바', x: 392, y: 262, desc: '아브라함·이삭·야곱 3대 족장이 장막을 치고 막벨라 굴에 장사된 언약의 본거지' },
+          { name: '5. 이집트 (고센 땅)', x: 295, y: 295, desc: '총리가 된 요셉의 초청으로 야곱의 70인 가족이 내려가 큰 민족을 이룬 곳' }
+        ],
+        empire: '고대 이집트 중왕국~힉소스기 · 고바벨론 시대'
+      },
+      3: {
+        nodes: [
+          { id: 'god', label: '여호와 (스스로 있는 자)', sub: '구원자 · 시내산 언약주', x: 340, y: 42, color: '#dc2626', root: true, desc: '떨기나무 불꽃 가운데 임하사 열 재앙과 유월절 피로 자기 백성을 구속하시고 성막에 임재하심' },
+          { id: 'moses', label: '모세', sub: '출애굽 지도자 · 중보자', x: 230, y: 145, color: '#d97706', desc: '호렙산에서 소명을 받아 홍해를 가르고 시내산에서 십계명과 성막 식양을 받아 전달함' },
+          { id: 'aaron', label: '아론 & 미리암', sub: '초대 대제사장 · 선지자', x: 460, y: 145, color: '#059669', desc: '모세의 입이 되어 사역하고 성막의 5대 제사와 대속죄일 규례(레위기)를 집례함' },
+          { id: 'pharaoh', label: '애굽 왕 바로', sub: '완악한 대적자', x: 110, y: 250, color: '#475569', desc: '여호와를 알지 못한다 교만하다가 열 재앙과 홍해 수장으로 심판받음' },
+          { id: 'israel', label: '제사장 나라 이스라엘', sub: '거룩한 성막 공동체', x: 365, y: 250, color: '#2563eb', desc: '노예에서 해방되어 유월절과 시내산 언약을 통해 하나님의 소유된 백성으로 세워짐' }
+        ],
+        edges: [
+          { from: 'god', to: 'moses', label: '떨기나무 소명 · 율법 수여' },
+          { from: 'god', to: 'aaron', label: '대제사장 위임 (레위기)' },
+          { from: 'moses', to: 'pharaoh', label: '10대 재앙 선포' },
+          { from: 'moses', to: 'israel', label: '유월절 · 홍해 · 성막 인도' },
+          { from: 'aaron', to: 'israel', label: '속죄 제사 · 축복 기도' }
+        ],
+        mapRegion: 'EXODUS',
+        places: [
+          { name: '1. 라암셋 (고센)', x: 295, y: 292, desc: '430년 종살이를 마치고 유월절 밤 어린양의 피를 바르고 출발한 출애굽 기점' },
+          { name: '2. 홍해 (얌 수프)', x: 325, y: 325, desc: '뒤쫓는 애굽 병거를 수장시키고 마른땅같이 건넌 구원의 바다 (출 14장)' },
+          { name: '3. 마라 · 엘림 · 르비딤', x: 342, y: 350, desc: '쓴물이 단물로 변하고 하늘의 만나와 반석의 생수가 터져 나온 광야 훈련장' },
+          { name: '4. 시내산 (호렙산)', x: 358, y: 372, desc: '십계명 언약을 맺고 성막(회막)을 건축하여 여호와의 영광 구름이 임재한 산 (출 19~40장, 레위기)' }
+        ],
+        empire: '이집트 신왕국 제18왕조 전성기 (BC 1446년)'
+      },
+      4: {
+        nodes: [
+          { id: 'god', label: '구름·불기둥의 하나님', sub: '광야 40년의 인도자', x: 340, y: 42, color: '#b45309', root: true, desc: '반역하는 광야에서도 만나와 생수를 끊지 않으시고 광야 2세대를 약속의 땅 문턱까지 키우심' },
+          { id: 'moses', label: '노년의 모세', sub: '고별 설교자 (신명기)', x: 215, y: 145, color: '#dc2626', desc: '놋뱀을 들어 백성을 살리고 모압 평지에서 쉐마(신 6:4)와 생명의 선택을 당부한 뒤 느보산에 오름' },
+          { id: 'josh_cal', label: '여호수아 & 갈렙', sub: '믿음의 두 정탐꾼', x: 465, y: 145, color: '#059669', desc: '가데스 바네아에서 오직 두 사람만 "그들은 우리의 먹이라!" 선포하여 가나안에 입성함' },
+          { id: 'gen1', label: '광야 1세대 & 고라', sub: '불신앙과 원망', x: 145, y: 250, color: '#64748b', desc: '10명 정탐꾼의 악평을 믿고 통곡하여 광야 40년 유랑 중에 소멸됨' },
+          { id: 'gen2', label: '광야 2세대 & 발람 사건', sub: '언약 갱신 세대', x: 445, y: 250, color: '#0284c7', desc: '발람의 저주가 축복으로 바뀌는 보호 속에 모압 평지에서 신명기 언약을 새김' }
+        ],
+        edges: [
+          { from: 'god', to: 'moses', label: '40년 동행 · 신명기 말씀' },
+          { from: 'moses', to: 'josh_cal', label: '안수 · 후계자 위임' },
+          { from: 'moses', to: 'gen1', label: '중보기도 · 놋뱀 구원' },
+          { from: 'moses', to: 'gen2', label: '모압 평지 3대 설교' }
+        ],
+        mapRegion: 'EXODUS',
+        places: [
+          { name: '1. 시내 광야 출발', x: 358, y: 372, desc: '인구조사와 진영 편성을 마치고 구름 기둥을 따라 행진을 시작한 곳 (민 1~10장)' },
+          { name: '2. 가데스 바네아', x: 378, y: 288, desc: '12정탐꾼의 보고를 듣고 불신앙으로 통곡하여 38년 광야 유랑이 시작된 뼈아픈 장소 (민 13~14장)' },
+          { name: '3. 에돔 우회길 (호르산)', x: 405, y: 305, desc: '원망하던 백성이 불뱀에 물렸을 때 장대에 달린 놋뱀을 쳐다보아 살아난 곳 (민 21장)' },
+          { name: '4. 모압 평지 & 느보산', x: 412, y: 254, desc: '모세가 광야 2세대에게 신명기 고별 설교를 전하고 가나안을 바라보며 숨을 거둔 산 (신 1~34장)' }
+        ],
+        empire: '고대 근동 후기 청동기 시대 (BC 1445~1406년)'
+      },
+      5: {
+        nodes: [
+          { id: 'god', label: '만군의 여호와 · 참된 왕', sub: '약속 성취 · 구원자', x: 340, y: 42, color: '#2563eb', root: true, desc: '요단강과 여리고를 무너뜨리시고, 사사시대 백성이 부르짖을 때마다 사사를 세워 구원하심' },
+          { id: 'joshua', label: '여호수아 & 갈렙', sub: '정복과 분배의 지도자', x: 180, y: 145, color: '#059669', desc: '"오직 나와 내 집은 여호와를 섬기겠노라" 가나안 정복과 12지파 기업 분배 완수' },
+          { id: 'rahab', label: '기생 라합', sub: '붉은 줄의 믿음', x: 110, y: 250, color: '#d97706', desc: '상천하지의 하나님을 고백하여 구원받고 보아스의 어머니(다윗·예수님의 조상)가 됨' },
+          { id: 'judges', label: '드보라 · 기드온 · 삼손', sub: '사사시대의 구원자들', x: 355, y: 155, color: '#7c3aed', desc: '연약한 그릇이나 여호와의 영에 감동되어 미디안·가나안·블레셋에서 백성을 구원함' },
+          { id: 'ruth', label: '룻 & 보아스 (나오미)', sub: '기업 무를 자(고엘)', x: 535, y: 245, color: '#e11d48', desc: '사사시대의 어둠 속에서 헤세드(은혜)의 날개 아래 만나 다윗 왕가의 증조부모가 됨' }
+        ],
+        edges: [
+          { from: 'god', to: 'joshua', label: '강하고 담대하라!' },
+          { from: 'joshua', to: 'rahab', label: '여리고 구원 · 언약 편입' },
+          { from: 'god', to: 'judges', label: '부르짖음에 응답 · 구원' },
+          { from: 'rahab', to: 'ruth', label: '베들레헴 다윗 계보 연결' }
+        ],
+        mapRegion: 'CANAAN',
+        places: [
+          { name: '1. 요단강 & 길갈 · 여리고', x: 406, y: 248, desc: '언약궤가 요단강을 가르고 길갈에 12돌을 세운 뒤 믿음의 행진으로 여리고성이 무너진 곳 (수 1~6장)' },
+          { name: '2. 세겜 (에발산·그리심산)', x: 398, y: 232, desc: '율법책을 낭독하고 여호수아가 마지막으로 언약을 갱신한 총회 장소 (수 8장, 24장)' },
+          { name: '3. 실로 (성막 중앙 성소)', x: 400, y: 238, desc: '가나안 땅 분배의 중심지이자 사사시대 내내 하나님의 성막이 머물렀던 곳 (수 18장)' },
+          { name: '4. 헤브론 & 베들레헴', x: 394, y: 256, desc: '85세 갈렙이 정복한 산지(헤브론)이자 보아스와 룻이 만나 다윗 가문을 일군 베들레헴 (룻 1~4장)' }
+        ],
+        empire: '가나안 도시국가 및 초기 철기 · 해양민족(블레셋) 유입기'
+      },
+      6: {
+        nodes: [
+          { id: 'god', label: '만군의 여호와 (마음의 중심)', sub: '다윗 언약(삼하 7장)의 주체', x: 340, y: 42, color: '#7c3aed', root: true, desc: '사람은 외모를 보거니와 중심을 보시며, 다윗에게 영원한 왕권과 성전 건축의 약속을 주심' },
+          { id: 'samuel', label: '선지자 사무엘 (한나)', sub: '왕정 시대를 연 킹메이커', x: 165, y: 135, color: '#0284c7', desc: '한나의 기도로 태어나 미스바 부흥을 이끌고 사울과 다윗에게 기름을 부음' },
+          { id: 'saul', label: '초대 왕 사울', sub: '불순종과 시기의 몰락', x: 135, y: 245, color: '#64748b', desc: '하나님보다 백성의 눈치를 보며 제사와 아말렉 진멸에 불순종하다 길보아산에서 전사함' },
+          { id: 'david', label: '다윗 왕', sub: '하나님 마음에 합한 왕', x: 375, y: 150, color: '#d97706', desc: '골리앗을 꺾고 광야의 눈물과 시편 찬양을 거쳐 시온성에 언약궤를 모시고 영원한 언약을 받음' },
+          { id: 'jonathan', label: '요나단 / 나단 선지자', sub: '생명의 벗 · 말씀의 파수꾼', x: 545, y: 245, color: '#059669', desc: '요나단은 다윗을 생명처럼 사랑했고, 나단은 다윗의 범죄를 책망해 시편 51편의 회개를 이끌어냄' }
+        ],
+        edges: [
+          { from: 'god', to: 'david', label: '기름부음 · 다윗 언약(삼하7)' },
+          { from: 'samuel', to: 'saul', label: '초대 왕 기름부음 · 책망' },
+          { from: 'samuel', to: 'david', label: '베들레헴 기름부음' },
+          { from: 'saul', to: 'david', label: '시기와 추격 (광야 시편)' },
+          { from: 'david', to: 'jonathan', label: '언약의 우정 · 나단의 권면' }
+        ],
+        mapRegion: 'CANAAN',
+        places: [
+          { name: '1. 실로 & 미스바', x: 398, y: 242, desc: '한나가 눈물로 기도한 실로와 사무엘이 에벤에셀 돌을 세운 미스바 부흥의 현장 (삼상 1~7장)' },
+          { name: '2. 엘라 골짜기 & 아둘람 굴', x: 386, y: 252, desc: '소년 다윗이 골리앗을 쓰러뜨린 골짜기와 사울을 피해 환난당한 자 400명과 숨어 지낸 동굴' },
+          { name: '3. 엔게디 광야 & 헤브론', x: 396, y: 262, desc: '다윗이 사울의 옷자락만 베고 살려준 광야이자, 유다 왕으로 7년 반 동안 다스린 헤브론' },
+          { name: '4. 예루살렘 (시온산 다윗성)', x: 398, y: 248, desc: '다윗이 통일왕국의 수도로 삼고 언약궤를 모셔 온 하나님의 성 (삼하 5~7장, 시편)' }
+        ],
+        empire: '이스라엘 통일왕국 개창기 (BC 1050~970년)'
+      },
+      7: {
+        nodes: [
+          { id: 'god', label: '지혜의 근원이신 여호와', sub: '성전에 이름을 두신 하나님', x: 340, y: 42, color: '#eab308', root: true, desc: '솔로몬에게 듣는 마음(지혜)을 주시고 예루살렘 성전에 영광 구름으로 임재하심' },
+          { id: 'solomon', label: '솔로몬 왕', sub: '성전 건축자 · 지혜 문학 저자', x: 340, y: 145, color: '#d97706', desc: '일천번제 후 지혜를 얻어 7년 만에 성전을 완공하고 잠언·전도서·아가를 남겼으나 노년에 타락함' },
+          { id: 'sheba', label: '스바 여왕 & 히람 왕', sub: '열방의 경탄과 동역', x: 140, y: 245, color: '#0284c7', desc: '두로 왕 히람은 백향목을 보내고 스바 여왕은 솔로몬의 지혜를 듣고 여호와를 송축함' },
+          { id: 'wisdom', label: '잠언 · 전도서 · 아가', sub: '경외의 지혜 · 참된 사랑', x: 525, y: 245, color: '#7c3aed', desc: '여호와 경외의 일상(잠언), 해 아래 유한함과 창조주 기억(전도서), 신랑과 신부의 사랑(아가)' }
+        ],
+        edges: [
+          { from: 'god', to: 'solomon', label: '듣는 마음(지혜) · 성전 임재' },
+          { from: 'solomon', to: 'sheba', label: '성전 건축 · 열방에 지혜 전파' },
+          { from: 'solomon', to: 'wisdom', label: '지혜 문학 3부작 집대성' }
+        ],
+        mapRegion: 'CANAAN',
+        places: [
+          { name: '1. 기브온 산당', x: 396, y: 244, desc: '솔로몬이 일천번제를 드리고 백성을 재판할 "듣는 마음(지혜)"을 구하여 응답받은 곳 (왕상 3장)' },
+          { name: '2. 예루살렘 모리아산 성전', x: 400, y: 248, desc: '아브라함이 이삭을 바쳤던 자리이자 다윗이 산 아라우나 타작마당 위에 7년간 건축한 제1성전 (왕상 6~8장)' },
+          { name: '3. 두로 & 에시온게벨 항구', x: 392, y: 202, desc: '백향목을 뗏목으로 운반해 온 두로와 스바 여왕·열방과 무역하던 솔로몬 황금기의 거점' }
+        ],
+        empire: '이스라엘 통일왕국 황금기 (BC 970~930년)'
+      },
+      8: {
+        nodes: [
+          { id: 'god', label: '언약의 하나님 여호와', sub: '갈멜산의 불 · 세미한 음성', x: 340, y: 42, color: '#0284c7', root: true, desc: '바알 숭배에 빠진 북이스라엘에 능력과 눈물의 선지자들을 보내어 끝까지 돌이키길 기다리심' },
+          { id: 'elijah', label: '엘리야 & 엘리사', sub: '불의 선지자 · 치유의 선지자', x: 170, y: 145, color: '#dc2626', desc: '갈멜산에서 850명 바알 선지자를 꺾고(엘리야), 갑절의 영감으로 나아만과 생명을 살림(엘리사)' },
+          { id: 'ahab', label: '여로보암 · 아합 · 이세벨', sub: '북이스라엘 우상숭배 왕가', x: 135, y: 250, color: '#64748b', desc: '단과 벧엘에 금송아지를 세우고 바알을 국교화하여 북왕국 멸망(BC 722)을 자초함' },
+          { id: 'jonah_amos', label: '요나 & 아모스', sub: '열방 긍휼 · 공의의 외침', x: 485, y: 145, color: '#059669', desc: '요나는 니느웨 회개를 통해 하나님의 넓은 긍휼을, 아모스는 물같이 흐르는 정의를 선포함' },
+          { id: 'hosea', label: '눈물의 선지자 호세아', sub: '고멜을 다시 사는 사랑(헤세드)', x: 515, y: 250, color: '#e11d48', desc: '"내가 어찌 너를 놓겠느냐!" 음란한 아내 고멜을 값을 주고 사 오며 하나님의 사랑을 삶으로 증언함' }
+        ],
+        edges: [
+          { from: 'god', to: 'elijah', label: '갈멜산 응답 · 호렙산 음성' },
+          { from: 'elijah', to: 'ahab', label: '우상숭배 대결 · 심판 경고' },
+          { from: 'god', to: 'jonah_amos', label: '니느웨 파송 · 벧엘 공의 선포' },
+          { from: 'god', to: 'hosea', label: '여호와께 돌아오라!' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '1. 사마리아 & 벧엘 (북이스라엘)', x: 398, y: 230, desc: '북왕국의 수도 사마리아와 여로보암이 금송아지를 세운 벧엘 (아모스·호세아의 사역지)' },
+          { name: '2. 갈멜산', x: 390, y: 218, desc: '엘리야가 바알과 아세라 선지자 850명과 대결하여 하늘에서 불이 내려 응답받은 산 (왕상 18장)' },
+          { name: '3. 욥바항 (요나의 도주)', x: 388, y: 244, desc: '요나가 니느웨로 가라는 명령을 피해 다시스행 배를 탔던 지중해 항구 (욘 1장)' },
+          { name: '4. 니느웨 (앗수르 수도)', x: 595, y: 140, desc: '요나의 외침에 왕부터 가축까지 베옷을 입고 회개한 성읍이자 BC 722년 북왕국을 멸망시킨 제국 수도' }
+        ],
+        empire: '신앗수르 제국 팽창기 (BC 930 ~ 722년 북이스라엘 멸망)'
+      },
+      9: {
+        nodes: [
+          { id: 'god', label: '거룩하신 만군의 여호와', sub: '심판 속의 남은 자 · 새 언약', x: 340, y: 42, color: '#4f46e5', root: true, desc: '유다의 죄악을 바벨론 막대기로 징계하시나 다윗의 등불과 마음에 새기는 새 언약을 약속하심' },
+          { id: 'kings', label: '히스기야 & 요시야 왕', sub: '남유다의 신앙 개혁 군주', x: 155, y: 145, color: '#059669', desc: '성전에 편지를 펴놓고 기도해 앗수르를 물리치고(히스기야), 율법책을 발견해 우상을 철폐함(요시야)' },
+          { id: 'isaiah', label: '대선지자 이사야 (미가)', sub: '임마누엘 · 고난받는 종(53장)', x: 340, y: 155, color: '#d97706', desc: '"내가 여기 있나이다 나를 보내소서!" 처녀 잉태와 우리의 죄를 대신 지시는 고난의 종 메시아를 예언함' },
+          { id: 'hab', label: '하박국 · 스바냐 · 요엘', sub: '오직 의인은 믿음으로!', x: 530, y: 145, color: '#0284c7', desc: '무화과나무가 마를지라도 여호와로 즐거워하는 믿음(하박국)과 성령 강림(요엘)을 노래함' },
+          { id: 'jeremiah', label: '눈물의 선지자 예레미야', sub: '새 언약(렘 31:31) · 애가', x: 340, y: 255, color: '#e11d48', desc: '무너지는 예루살렘을 보며 40년간 눈물로 회개를 외치고 폐허 위에서 아침마다 새로운 인자하심을 고백함' }
+        ],
+        edges: [
+          { from: 'god', to: 'isaiah', label: '성전 보좌 환상 · 메시아 계시' },
+          { from: 'isaiah', to: 'kings', label: '히스기야와 함께 기도로 승리' },
+          { from: 'god', to: 'hab', label: '의인은 믿음으로 살리라!' },
+          { from: 'god', to: 'jeremiah', label: '토기장이 비유 · 새 언약 수여' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '1. 예루살렘 성전 & 실로암', x: 398, y: 248, desc: '이사야가 보좌 환상을 보고 히스기야가 기도한 성전이며, BC 586년 바벨론에 함락된 눈물의 도성' },
+          { name: '2. 아나돗 & 베들레헴', x: 402, y: 252, desc: '예레미야의 고향 아나돗(포위 중에 밭을 사며 회복을 예언한 곳)과 미가가 메시아 탄생을 예언한 베들레헴' },
+          { name: '3. 앗수르(니느웨) → 바벨론', x: 635, y: 215, desc: '나훔의 예언대로 무너진 니느웨와 남유다를 침공하여 포로로 끌고 간 신바벨론 제국' }
+        ],
+        empire: '앗수르 몰락 및 신바벨론(느부갓네살) 제국 패권기 (BC 722~586년)'
+      },
+      10: {
+        nodes: [
+          { id: 'god', label: '영광 보좌의 하나님 (여호와 삼마)', sub: '포로지까지 찾아오신 주권자', x: 340, y: 42, color: '#9333ea', root: true, desc: '예루살렘 성전은 불탔으나 바벨론 그발 강가와 풀무불·사자 굴 한복판에 친히 임재하심' },
+          { id: 'ezekiel', label: '제사장 선지자 에스겔', sub: '마른 뼈의 부활 · 생명수 성전', x: 195, y: 155, color: '#0284c7', desc: '그발 강가에서 보좌 환상을 보고, 새 영과 새 마음(36장)·마른 뼈 군대(37장)·생명수 성전(47장)을 선포함' },
+          { id: 'daniel', label: '다니엘', sub: '뜻을 정한 총리 · 하나님 나라 환상', x: 485, y: 155, color: '#d97706', desc: '하루 세 번 예루살렘을 향해 감사로 기도하며 사자 굴에서 건짐 받고 영원한 인자의 나라를 환상으로 봄' },
+          { id: 'friends', label: '사드락 · 메삭 · 아벳느고', sub: '그리 아니하실지라도!', x: 340, y: 255, color: '#dc2626', desc: '금신상 절을 거부하고 칠 배나 뜨거운 풀무불에 던져졌으나 하나님의 아들과 함께 걸어 나옴' },
+          { id: 'kings_bab', label: '느부갓네살 · 다리오 왕', sub: '바벨론·바사 제국 군주들', x: 555, y: 255, color: '#64748b', desc: '다니엘과 세 친구를 통해 지극히 높으신 하나님이 인간 나라를 다스리심을 굴복하며 찬양함' }
+        ],
+        edges: [
+          { from: 'god', to: 'ezekiel', label: '생기(루아흐) · 여호와 삼마' },
+          { from: 'god', to: 'daniel', label: '사자 굴 구원 · 70이레 계시' },
+          { from: 'daniel', to: 'friends', label: '뜻을 정한 믿음의 동역' },
+          { from: 'daniel', to: 'kings_bab', label: '제국의 꿈 해석 · 주권 선포' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '1. 예루살렘 (1·2·3차 포로 이주)', x: 398, y: 248, desc: 'BC 605년(다니엘), BC 597년(에스겔), BC 586년 세 차례에 걸쳐 바벨론으로 포로가 되어 떠나온 고국' },
+          { name: '2. 바벨론 그발 강가 (텔아빕)', x: 645, y: 230, desc: '포로 수용소 강가에서 에스겔에게 하늘이 열리고 하나님의 영광 수레바퀴 보좌가 나타난 곳 (겔 1장)' },
+          { name: '3. 바벨론 왕궁 & 두라 평지', x: 660, y: 242, desc: '다니엘이 예루살렘을 향해 창문을 열고 기도하던 곳이자 세 친구가 풀무불에서 승리한 현장 (단 1~6장)' }
+        ],
+        empire: '신바벨론 제국 ~ 메대·바사(페르시아) 제국 전환기 (BC 605~539년)'
+      },
+      11: {
+        nodes: [
+          { id: 'god', label: '약속을 지키시는 만군의 여호와', sub: '나의 영으로 되느니라! (학·슥)', x: 340, y: 42, color: '#0d9488', root: true, desc: '70년 포로 기한이 차매 고레스의 마음을 감동시켜 백성을 귀환시키시고 성전과 성벽을 재건하심' },
+          { id: 'zerub', label: '스룹바벨 & 학개·스가랴', sub: '1차 귀환 · 제2성전 완공', x: 145, y: 150, color: '#d97706', desc: '방해로 멈춘 성전 공사를 학개·스가랴의 격려로 재개하여 BC 516년 성전을 봉헌함' },
+          { id: 'esther', label: '왕후 에스더 & 모르드개', sub: '죽으면 죽으리이다! (부림절)', x: 340, y: 155, color: '#e11d48', desc: '페르시아 수산 궁에서 하만의 유다인 말살 음모를 3일 금식 기도로 역전시켜 민족을 구원함' },
+          { id: 'ezra_neh', label: '학사 에스라 & 총독 느헤미야', sub: '2·3차 귀환 · 말씀 부흥 & 성벽 재건', x: 535, y: 150, color: '#0284c7', desc: '52일 만에 무너진 성벽을 중수하고(느헤미야), 수문 앞 광장에서 율법책을 낭독해 대부흥을 일으킴(에스라)' },
+          { id: 'malachi', label: '구약의 마지막 선지자 말라기', sub: '치료하는 광선 · 공의로운 해', x: 340, y: 255, color: '#7c3aed', desc: '참된 예배 회복을 촉구하며 엘리야(세례 요한)와 공의로운 해(메시아)의 오심을 예고하며 구약을 마침' }
+        ],
+        edges: [
+          { from: 'god', to: 'zerub', label: '1차 귀환 · 성전 재건(BC 516)' },
+          { from: 'god', to: 'esther', label: '보이지 않는 섭리의 구원' },
+          { from: 'god', to: 'ezra_neh', label: '2·3차 귀환 · 성벽·말씀 재건' },
+          { from: 'ezra_neh', to: 'malachi', label: '신약 메시아 대망으로 연결' }
+        ],
+        mapRegion: 'ANE',
+        places: [
+          { name: '1. 바벨론 & 페르시아 수산 궁', x: 695, y: 245, desc: '고레스 칙령이 선포되고 에스더가 죽으면 죽으리이다 결단했으며 느헤미야가 술관원으로 기도하던 궁전' },
+          { name: '2. 유프라테스 귀환 루트 (약 1,500km)', x: 540, y: 145, desc: '스룹바벨, 에스라, 느헤미야가 하나님의 선한 손의 도우심을 힘입어 4개월간 걸어 돌아온 귀환길' },
+          { name: '3. 예루살렘 제2성전 & 수문 앞 광장', x: 398, y: 248, desc: '눈물과 기쁨 속에 성전과 성벽을 재건하고 새벽부터 정오까지 말씀 앞에 울며 부흥을 경험한 곳 (느 8장)' }
+        ],
+        empire: '페르시아(바사) 제국 아케메네스 왕조 시대 (BC 538~400년경)'
+      },
+      12: {
+        nodes: [
+          { id: 'jesus', label: '예수 그리스도 (말씀이 육신이 됨)', sub: '하나님의 아들 · 메시아 왕', x: 340, y: 46, color: '#e11d48', root: true, desc: '아브라함과 다윗의 자손이자 하나님의 아들로 오사 천국 복음을 전파하시고 병든 자와 죄인을 고치심' },
+          { id: 'baptist', label: '세례 요한 & 마리아·요셉', sub: '탄생의 순종 · 광야의 외치는 소리', x: 145, y: 150, color: '#d97706', desc: '"주의 계집종이오니 말씀대로 이루어지이다"(마리아) / "보라 세상 죄를 지고 가는 하나님의 어린양이로다"(요한)' },
+          { id: 'disciples', label: '베드로 · 요한 · 야고보 (12제자)', sub: '사람을 낚는 어부 · 신앙고백', x: 535, y: 150, color: '#0284c7', desc: '갈릴리 그물을 버리고 주님을 따르며 "주는 그리스도시요 살아 계신 하나님의 아들이시니이다"(마 16:16) 고백함' },
+          { id: 'seekers', label: '니고데모 · 수가성 여인 · 삭개오', sub: '거듭남과 생명수를 만난 영혼들', x: 215, y: 252, color: '#059669', desc: '밤에 찾아온 학자, 우물가의 상처 입은 여인, 뽕나무 위 세리장을 주님이 친히 찾아가 구원을 선포하심' },
+          { id: 'crowd', label: '오병이어 무리 & 바리새인들', sub: '표적의 현장 · 율법주의 논쟁', x: 475, y: 252, color: '#64748b', desc: '안식일의 주인이신 예수님의 긍휼과 외식하는 종교 지도자들의 완악함이 대조됨' }
+        ],
+        edges: [
+          { from: 'baptist', to: 'jesus', label: '요단강 세례 · 어린양 증언' },
+          { from: 'jesus', to: 'disciples', label: '부르심 · 산상수훈 · 파송' },
+          { from: 'jesus', to: 'seekers', label: '찾아가시는 은혜 · 영생 수여' },
+          { from: 'jesus', to: 'crowd', label: '치유와 오병이어 · 천국 비유' }
+        ],
+        mapRegion: 'CANAAN',
+        places: [
+          { name: '1. 베들레헴 & 나사렛', x: 396, y: 252, desc: '구유에서 탄생하신 다윗의 동네 베들레헴과 어린 시절 자라나신 갈릴리 나사렛 (마 1~2, 눅 1~2)' },
+          { name: '2. 요단강 & 유대 광야', x: 406, y: 246, desc: '세례 요한에게 세례를 받으실 때 하늘이 열리고 광야에서 40일 금식 후 말씀으로 마귀를 이기신 곳' },
+          { name: '3. 가버나움 & 갈릴리 호수', x: 404, y: 210, desc: '예수님의 갈릴리 사역 본부이자 산상수훈, 풍랑 잠잠케 하심, 오병이어 기적이 일어난 복음의 중심지' },
+          { name: '4. 수가성(사마리아) & 가이사랴 빌립보', x: 400, y: 230, desc: '우물가 여인에게 생수를 주신 수가성과 베드로의 신앙고백이 터져 나온 북단 가이사랴 빌립보' }
+        ],
+        empire: '로마 제국 초기 (아우구스투스 ~ 티베리우스 황제, BC 4 ~ AD 30년)'
+      },
+      13: {
+        nodes: [
+          { id: 'jesus', label: '십자가와 부활의 주 예수 그리스도', sub: '다 이루었다! · 부활의 첫 열매', x: 340, y: 46, color: '#be123c', root: true, desc: '제자들의 발을 씻기시고 겟세마네와 골고다 십자가에서 대속을 완성하신 뒤 사흘 만에 부활하심' },
+          { id: 'peter', label: '베드로와 제자들', sub: '실패를 넘어 사명으로 회복', x: 160, y: 155, color: '#0284c7', desc: '숯불 앞에서 세 번 부인하고 통곡했으나 디베랴 바닷가 조반 자리에서 "내 양을 먹이라" 회복됨' },
+          { id: 'mary', label: '막달라 마리아 & 엠마오 두 제자', sub: '빈 무덤과 부활의 첫 증인들', x: 525, y: 155, color: '#059669', desc: '안식 후 첫날 새벽 부활하신 주님을 가장 먼저 만나고 성경을 풀어주실 때 마음이 뜨거워짐' },
+          { id: 'pilate', label: '대제사장 가야바 · 빌라도 · 유다', sub: '불의한 재판과 배반', x: 185, y: 252, color: '#64748b', desc: '인간의 죄악과 종교·정치적 타협으로 무죄하신 하나님의 아들을 십자가에 못 박음' },
+          { id: 'centurion', label: '회개한 강도 · 백부장 · 아리마대 요셉', sub: '십자가 아래서 피어난 구원', x: 495, y: 252, color: '#d97706', desc: '"오늘 네가 나와 함께 낙원에 있으리라!" / "이는 진실로 하나님의 아들이었도다!"' }
+        ],
+        edges: [
+          { from: 'jesus', to: 'peter', label: '세족식 · 디베랴 숯불의 회복' },
+          { from: 'jesus', to: 'mary', label: '빈 무덤 현현 · 부활 증언 위임' },
+          { from: 'pilate', to: 'jesus', label: '고난과 십자가 처형 (성소 휘장 찢어짐)' },
+          { from: 'jesus', to: 'centurion', label: '대속의 용서 · 새 무덤 장사' }
+        ],
+        mapRegion: 'CANAAN',
+        places: [
+          { name: '1. 감람산 & 예루살렘 성전', x: 400, y: 248, desc: '종려주일 나귀를 타고 입성하사 성전을 정화하시고 감람산 강화를 들려주신 곳 (마 21~25장)' },
+          { name: '2. 마가의 다락방 & 겟세마네 동산', x: 402, y: 250, desc: '성찬과 세족식, 고별 설교(요 13~17장)를 나누시고 땀이 핏방울이 되도록 기도하신 동산' },
+          { name: '3. 골고다(갈보리) & 빈 무덤', x: 398, y: 247, desc: '세상 죄를 지고 십자가에서 "다 이루었다" 외치신 곳이자 사흘 만에 부활하신 승리의 현장' },
+          { name: '4. 엠마오 & 갈릴리 디베랴 바닷가', x: 404, y: 212, desc: '부활하신 주님이 낙심한 제자들을 찾아가 떡을 떼시고 베드로를 회복시키신 뒤 지상명령을 주신 곳' }
+        ],
+        empire: '로마 제국 유대 총독 통치기 (AD 30년 봄, 유월절~부활·승천)'
+      },
+      14: {
+        nodes: [
+          { id: 'spirit', label: '보혜사 성령 하나님 (부활하신 주님)', sub: '사도행전의 진정한 주인공', x: 340, y: 42, color: '#ea580c', root: true, desc: '오순절에 강림하사 두려워하던 제자들을 땅끝의 증인으로 바꾸시고 선교의 모든 길을 여심' },
+          { id: 'peter_john', label: '베드로 · 요한 · 야고보', sub: '예루살렘 교회의 기둥 · 유대/사마리아 선교', x: 145, y: 148, color: '#0284c7', desc: '오순절 설교로 삼천 명을 회심시키고 이방인 백부장 고넬료에게 복음의 문을 열며 일반서신을 기록함' },
+          { id: 'stephen', label: '스데반 & 빌립 집사', sub: '순교의 씨앗 · 복음의 확장', x: 145, y: 250, color: '#d97706', desc: '스데반의 순교를 계기로 흩어진 성도들이 사마리아와 에티오피아 내시, 안디옥까지 복음을 전파함' },
+          { id: 'paul', label: '사도 바울 (바나바)', sub: '이방인의 사도 · 13권 서신서 저자', x: 525, y: 148, color: '#7c3aed', desc: '다메섹 회심 후 안디옥 교회에서 파송 받아 1·2·3차 선교여행과 로마 여정 속에 교회를 세우고 서신서를 씀' },
+          { id: 'timothy', label: '디모데 · 누가 · 브리스길라와 아굴라', sub: '신실한 동역자 · 사도행전29장 계승', x: 525, y: 250, color: '#059669', desc: '감옥과 풍랑 속에서도 바울과 함께 복음을 위해 목숨이라도 내놓은 초대교회의 동역자들' }
+        ],
+        edges: [
+          { from: 'spirit', to: 'peter_john', label: '오순절 성령강림 · 고넬료 환상' },
+          { from: 'peter_john', to: 'stephen', label: '일곱 집사 안수 · 디아스포라 선교' },
+          { from: 'spirit', to: 'paul', label: '다메섹 부르심 · 안디옥 파송' },
+          { from: 'paul', to: 'timothy', label: '1·2·3차 선교 · 옥중/목회서신' }
+        ],
+        mapRegion: 'MED',
+        places: [
+          { name: '1. 예루살렘 & 사마리아 · 가이사랴', x: 645, y: 295, desc: '마가 다락방 오순절 성령 강림과 초대교회 탄생, 고넬료의 집 이방인 오순절이 일어난 출발점 (행 1~10장)' },
+          { name: '2. 수리아 안디옥 (세계 선교 전초기지)', x: 655, y: 225, desc: '비로소 그리스도인이라 일컬음을 받고 바나바와 바울을 1·2·3차 선교여행으로 파송한 모교회 (행 11, 13장)' },
+          { name: '3. 갈라디아 & 에베소 (소아시아)', x: 520, y: 195, desc: '1차 선교지(갈라디아서)이자 3차 여행 때 두란노 서원에서 2년간 말씀을 강론한 에베소 (행 13~14, 19장)' },
+          { name: '4. 빌립보 · 데살로니가 · 고린도 (마게도냐·아가야)', x: 425, y: 165, desc: '마게도냐 환상을 보고 건너가 유럽 첫 교회를 세우고 살전·후, 고전·후, 로마서를 집필한 현장 (행 16~20장)' },
+          { name: '5. 로마 (땅끝을 향한 심장부)', x: 245, y: 135, desc: '유라굴로 광풍을 뚫고 도착한 바울이 가택연금 속에서 옥중서신(엡·빌·골·몬)과 디모데후서를 남긴 곳 (행 28장)' }
+        ],
+        empire: '팍스 로마나(Pax Romana) 지중해 로마 제국기 (AD 30~68년경)'
+      },
+      15: {
+        nodes: [
+          { id: 'lamb', label: '보좌에 앉으신 이 & 어린양 예수', sub: '알파와 오메가 · 만왕의 왕', x: 340, y: 46, color: '#eab308', root: true, desc: '일찍이 죽임을 당하신 어린양으로서 인봉을 떼시고 온 우주의 역사를 심판·완성하시는 영원한 왕' },
+          { id: 'john', label: '밧모섬의 사도 요한', sub: '계시의 증인 · 마라나타 고백자', x: 175, y: 155, color: '#0284c7', desc: '도미티아누스 박해기 밧모섬 유배 중에 열린 하늘 문을 보고 일곱 교회와 온 세대에 소망의 예언을 전함' },
+          { id: 'churches', label: '소아시아 일곱 교회 (성도들)', sub: '이기는 자에게 주시는 면류관', x: 505, y: 155, color: '#059669', desc: '환난과 박해 속에서도 어린양의 피와 증언하는 말씀으로 끝까지 믿음을 지키는 지상 교회' },
+          { id: 'babylon', label: '용(사탄) · 짐승 · 큰 성 바벨론', sub: '일시적 박해자 · 영원한 멸망', x: 175, y: 252, color: '#64748b', desc: '하나님을 대적하고 성도를 미혹하나 어린양의 말씀의 검 앞에 한순간에 무너져 심판받음' },
+          { id: 'new_jer', label: '새 하늘과 새 땅 (새 예루살렘)', sub: '어린양의 신부 · 영원한 생명수', x: 505, y: 252, color: '#e11d48', desc: '다시는 사망이나 눈물이나 아픔이 없고 하나님이 친히 함께 거하시는 구속 역사의 영광스러운 완성(계 21~22장)' }
+        ],
+        edges: [
+          { from: 'lamb', to: 'john', label: '두려워하지 말라! · 열린 하늘 계시' },
+          { from: 'john', to: 'churches', label: '일곱 교회 편지 · 위로와 권면' },
+          { from: 'lamb', to: 'babylon', label: '최후 심판 · 완전한 승리' },
+          { from: 'lamb', to: 'new_jer', label: '어린양의 혼인잔치 · 새 창조 완성' }
+        ],
+        mapRegion: 'MED',
+        places: [
+          { name: '1. 밧모섬 (유배지 계시 현장)', x: 492, y: 205, desc: '하나님의 말씀과 예수를 증언하였음으로 말미암아 밧모섬에 있던 요한이 주의 날에 환상을 본 섬 (계 1:9)' },
+          { name: '2. 소아시아 7대 교회 (에베소~라오디게아)', x: 530, y: 192, desc: '에베소, 서머나, 버가모, 두아디라, 사데, 빌라델비아, 라오디게아 일곱 교회가 위치한 소아시아 순환로 (계 2~3장)' },
+          { name: '3. 하늘로부터 내려오는 새 예루살렘', x: 645, y: 295, desc: '처음 하늘과 처음 땅이 없어지고 생명수 강과 생명나무가 회복되어 영원토록 왕 노릇 하는 하나님 나라 (계 21~22장)' }
+        ],
+        empire: '로마 황제 숭배 박해기(AD 95년경)를 넘어 영원한 하나님 나라의 완성으로!'
+      }
+    };
+
+    function renderVisualCharacterGraph(act) {
+      const box = document.getElementById('ui-char-diagram');
+      const detailBox = document.getElementById('ui-char-detail');
+      if (!box) return;
+      const vData = ACT_VISUAL_DATA[act.act] || ACT_VISUAL_DATA[1];
+      const nodes = vData.nodes;
+      const edges = vData.edges;
+      const nodeById = {};
+      nodes.forEach(n => { nodeById[n.id] = n; });
+
+      let svg = `<svg viewBox="0 0 680 300" style="width:100%; height:auto; min-width:520px; display:block; font-family:'Pretendard',sans-serif;">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#94a3b8"/>
+          </marker>
+          <filter id="nodeShadow" x="-10%" y="-10%" width="120%" height="125%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.14"/>
+          </filter>
+        </defs>`;
+
+      // 연결선 (Edges)
+      edges.forEach(e => {
+        const n1 = nodeById[e.from];
+        const n2 = nodeById[e.to];
+        if (!n1 || !n2) return;
+        const mx = (n1.x + n2.x) / 2;
+        const my = (n1.y + n2.y) / 2;
+        svg += `
+          <line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" stroke="#cbd5e1" stroke-width="2.2" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+          <rect x="${mx - 64}" y="${my - 10}" width="128" height="19" rx="9" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="${mx}" y="${my + 3}" text-anchor="middle" font-size="10" font-weight="700" fill="#475569">${escapeHtml(e.label)}</text>
+        `;
+      });
+
+      // 인물 노드 (Nodes)
+      nodes.forEach((n, idx) => {
+        const w = n.root ? 196 : 168;
+        const h = n.root ? 54 : 50;
+        const rx = n.x - w / 2;
+        const ry = n.y - h / 2;
+        svg += `
+          <g style="cursor:pointer;" onclick="showCharacterNodeDetail(${act.act}, ${idx})">
+            <rect x="${rx}" y="${ry}" width="${w}" height="${h}" rx="13" fill="#ffffff" stroke="${n.color}" stroke-width="${n.root ? '3' : '2'}" filter="url(#nodeShadow)"/>
+            <rect x="${rx}" y="${ry}" width="${w}" height="18" rx="11" fill="${n.color}"/>
+            <text x="${n.x}" y="${ry + 12.5}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#ffffff">${escapeHtml(n.sub)}</text>
+            <text x="${n.x}" y="${ry + 36}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1e293b">${escapeHtml(n.label)}</text>
+          </g>
+        `;
+      });
+
+      svg += `</svg>`;
+      box.innerHTML = svg;
+      if (detailBox && nodes[0]) {
+        detailBox.style.display = 'block';
+        detailBox.innerHTML = `<strong style="color:${nodes[0].color}">👤 ${escapeHtml(nodes[0].label)} (${escapeHtml(nodes[0].sub)})</strong><br>${escapeHtml(nodes[0].desc)}`;
+      }
+    }
+
+    function showCharacterNodeDetail(actNum, nodeIdx) {
+      const vData = ACT_VISUAL_DATA[actNum];
+      if (!vData || !vData.nodes[nodeIdx]) return;
+      const n = vData.nodes[nodeIdx];
+      const detailBox = document.getElementById('ui-char-detail');
+      if (detailBox) {
+        detailBox.style.display = 'block';
+        detailBox.style.borderLeftColor = n.color;
+        detailBox.innerHTML = `<strong style="color:${n.color}">👤 ${escapeHtml(n.label)} · ${escapeHtml(n.sub)}</strong><div style="margin-top:3px; color:var(--text-primary);">${escapeHtml(n.desc)}</div>`;
+      }
+    }
+
+    function renderVisualBibleMap(act) {
+      const box = document.getElementById('ui-bible-map-box');
+      const detailBox = document.getElementById('ui-place-detail');
+      if (!box) return;
+      const vData = ACT_VISUAL_DATA[act.act] || ACT_VISUAL_DATA[1];
+      const places = vData.places || [];
+      const region = vData.mapRegion || 'ANE';
+
+      // 고대 근동 & 지중해 성경 아틀라스 베이스맵 SVG
+      let bgPaths = '';
+      if (region === 'MED') {
+        // 지중해 전체 (예루살렘 ~ 안디옥 ~ 소아시아 ~ 그리스 ~ 로마)
+        bgPaths = `
+          <rect width="760" height="360" fill="#cbe4f9"/>
+          <!-- 이탈리아 반도 -->
+          <path d="M180,40 L235,45 L285,140 L305,175 L280,195 L260,155 L210,100 Z" fill="#efe6d5" stroke="#c8b99e" stroke-width="2"/>
+          <!-- 그리스·마게도냐 -->
+          <path d="M365,60 L455,65 L450,185 L415,215 L385,180 Z" fill="#efe6d5" stroke="#c8b99e" stroke-width="2"/>
+          <!-- 소아시아(터키) & 수리아 & 가나안 & 이집트 -->
+          <path d="M475,95 L745,85 L755,355 L420,355 L435,310 L625,305 L645,215 L480,215 Z" fill="#efe6d5" stroke="#c8b99e" stroke-width="2"/>
+          <!-- 구브로 & 그레데 & 밧모 -->
+          <ellipse cx="590" cy="250" rx="22" ry="9" fill="#efe6d5" stroke="#c8b99e" stroke-width="1.5"/>
+          <ellipse cx="435" cy="248" rx="32" ry="8" fill="#efe6d5" stroke="#c8b99e" stroke-width="1.5"/>
+          <circle cx="492" cy="205" r="5" fill="#efe6d5" stroke="#c8b99e"/>
+          <text x="315" y="285" font-size="14" font-weight="800" fill="#0284c7" opacity="0.55" letter-spacing="4">지 중 해 (대 해)</text>
+          <text x="535" y="150" font-size="12" font-weight="700" fill="#78716c" opacity="0.7">소 아 시 아 (길리기아·갈라디아·아시아)</text>
+          <text x="200" y="90" font-size="11" font-weight="700" fill="#78716c">이탈리아</text>
+          <text x="392" y="130" font-size="11" font-weight="700" fill="#78716c">마게도냐·아가야</text>
+        `;
+      } else {
+        // 고대 근동(비옥한 초승달 지대: 이집트·시내산·가나안·메소포타미아)
+        bgPaths = `
+          <rect width="760" height="390" fill="#f3ebd9"/>
+          <!-- 지중해 (좌측 상단 바다) -->
+          <path d="M0,0 L395,0 L382,190 L375,275 L235,280 L0,270 Z" fill="#cbe4f9" stroke="#93c5fd" stroke-width="2"/>
+          <text x="175" y="165" font-size="14" font-weight="800" fill="#0284c7" opacity="0.6" letter-spacing="3">지 중 해 (대해)</text>
+          <!-- 홍해 (갈라진 두 만: 수에즈만 & 아카바만) -->
+          <path d="M312,315 L345,388 L372,388 L385,335 L398,388 L355,390 L295,390 Z" fill="#cbe4f9" stroke="#93c5fd" stroke-width="1.5"/>
+          <!-- 페르시아만 (우측 하단) -->
+          <path d="M685,295 L760,295 L760,390 L665,390 Z" fill="#cbe4f9"/>
+          <!-- 나일강과 삼각주 -->
+          <path d="M275,390 Q285,335 280,278 M280,278 L262,258 M280,278 L298,260" fill="none" stroke="#38bdf8" stroke-width="3.5"/>
+          <text x="235" y="340" font-size="12" font-weight="800" fill="#78716c">이 집 트 (애굽)</text>
+          <!-- 갈릴리 호수 · 요단강 · 사해 -->
+          <circle cx="405" cy="212" r="5.5" fill="#0284c7"/>
+          <line x1="405" y1="217" x2="405" y2="250" stroke="#0284c7" stroke-width="2.5"/>
+          <ellipse cx="405" cy="260" rx="5.5" ry="12" fill="#0284c7"/>
+          <text x="418" y="238" font-size="11.5" font-weight="800" fill="#57534e">가나안 (약속의 땅)</text>
+          <!-- 유프라테스강 & 티그리스강 (비옥한 초승달) -->
+          <path d="M510,65 Q535,145 625,235 T700,305" fill="none" stroke="#38bdf8" stroke-width="3"/>
+          <path d="M555,55 Q605,135 665,220 T705,300" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+          <text x="580" y="185" font-size="11.5" font-weight="800" fill="#78716c">메소포타미아 (앗수르·바벨론)</text>
+          <text x="470" y="325" font-size="12" font-weight="700" fill="#a8a29e" letter-spacing="2">아 라 비 아 광 야</text>
+        `;
+      }
+
+      // 이동 경로 점선 화살표
+      let routeLine = '';
+      if (places.length > 1) {
+        const pts = places.map(p => `${p.x},${p.y}`).join(' ');
+        routeLine = `<polyline points="${pts}" fill="none" stroke="${act.theme_color || '#dc2626'}" stroke-width="3.2" stroke-dasharray="7,5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }
+
+      // 지명 핀(Pin) 마커
+      let pins = '';
+      places.forEach((p, idx) => {
+        pins += `
+          <g style="cursor:pointer;" onclick="showPlacePinDetail(${act.act}, ${idx})">
+            <circle cx="${p.x}" cy="${p.y}" r="13" fill="${act.theme_color || '#dc2626'}" opacity="0.22"/>
+            <circle cx="${p.x}" cy="${p.y}" r="8.5" fill="${act.theme_color || '#dc2626'}" stroke="#ffffff" stroke-width="2"/>
+            <text x="${p.x}" y="${p.y + 3.5}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#ffffff">${idx + 1}</text>
+            <rect x="${p.x - 68}" y="${p.y - 31}" width="136" height="19" rx="6" fill="rgba(15,23,42,0.82)"/>
+            <text x="${p.x}" y="${p.y - 18}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#ffffff">${escapeHtml(p.name)}</text>
+          </g>
+        `;
+      });
+
+      const viewH = region === 'MED' ? 360 : 390;
+      box.innerHTML = `<svg viewBox="0 0 760 ${viewH}" style="width:100%; height:auto; display:block; font-family:'Pretendard',sans-serif;">${bgPaths}${routeLine}${pins}</svg>`;
+
+      if (detailBox && places[0]) {
+        detailBox.innerHTML = `<strong style="color:#0284c7">📍 ${escapeHtml(places[0].name)}</strong><div style="margin-top:3px; color:var(--text-primary);">${escapeHtml(places[0].desc)}</div>`;
+      }
+    }
+
+    function showPlacePinDetail(actNum, idx) {
+      const vData = ACT_VISUAL_DATA[actNum];
+      if (!vData || !vData.places[idx]) return;
+      const p = vData.places[idx];
+      const detailBox = document.getElementById('ui-place-detail');
+      if (detailBox) {
+        detailBox.innerHTML = `<strong style="color:#0284c7">📍 ${escapeHtml(p.name)}</strong><div style="margin-top:3px; color:var(--text-primary);">${escapeHtml(p.desc)}</div>`;
+      }
+    }
+
+    function renderVisualTimeline(act) {
+      const box = document.getElementById('ui-timeline-graphic');
+      if (!box) return;
+      const vData = ACT_VISUAL_DATA[act.act] || ACT_VISUAL_DATA[1];
+      const acts = window.BIBLE_STORY_DATA.acts;
+
+      let html = `
+        <div style="font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:10px; padding:8px 12px; background:var(--bg-main); border-radius:8px;">
+          🏛️ <strong>세계사 및 제국 배경:</strong> ${escapeHtml(vData.empire)} · <span style="color:var(--accent)">${escapeHtml(act.era)}</span>
+        </div>
+        <div style="display:flex; align-items:stretch; gap:6px; min-width:680px; padding-bottom:4px;">
+      `;
+
+      acts.forEach(a => {
+        const isCur = a.act === act.act;
+        const shortName = a.title.replace(/^제\d+막\s*·\s*/, '').split(/[:(]/)[0].trim();
+        html += `
+          <div onclick="selectEpisode('${a.episodes[0].id}')" style="flex:1; min-width:42px; cursor:pointer; border-radius:10px; padding:8px 4px; text-align:center; border:2px solid ${isCur ? a.theme_color : 'var(--border-color)'}; background:${isCur ? a.theme_color : 'var(--bg-main)'}; color:${isCur ? '#fff' : 'var(--text-primary)'}; transition:transform 0.15s; transform:${isCur ? 'scale(1.04)' : 'none'};">
+            <div style="font-size:10px; font-weight:800; opacity:0.85;">${a.act}막</div>
+            <div style="font-size:10.5px; font-weight:700; line-height:1.25; margin-top:3px; word-break:keep-all;">${escapeHtml(shortName.slice(0, 8))}</div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      box.innerHTML = html;
     }
 
     window.addEventListener('DOMContentLoaded', () => {

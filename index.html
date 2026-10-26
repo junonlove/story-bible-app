@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="sepia">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="스토리 성경통독">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="manifest" href="story_bible_manifest.json">
+  <title>스토리 성경통독 · 개역개정 15막 구속사 드라마</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root, [data-theme="sepia"] {
+      --bg-main: #f8f4ec;
+      --bg-card: #fffdf9;
+      --bg-sidebar: #f1ebe0;
+      --bg-elevated: #efe7d8;
+      --text-primary: #292524;
+      --text-secondary: #57534e;
+      --text-muted: #78716c;
+      --border-color: #e4dccb;
+      --accent: #b45309;
+      --accent-soft: rgba(180, 83, 9, 0.12);
+      --accent-hover: #92400e;
+      --success: #059669;
+      --success-soft: rgba(5, 150, 105, 0.14);
+      --lpc-badge: #4f46e5;
+      --sermon-badge: #0284c7;
+      --shadow-sm: 0 2px 8px rgba(41, 37, 36, 0.06);
+      --shadow-md: 0 8px 24px rgba(41, 37, 36, 0.10);
+      --reader-font-size: 19px;
+      --reader-line-height: 1.95;
+      --reader-font: 'Noto Serif KR', Georgia, serif;
+    }
+
+    [data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-sidebar: #f1f5f9;
+      --bg-elevated: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.10);
+      --accent-hover: #1d4ed8;
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #0b1120;
+      --bg-elevated: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --accent: #f59e0b;
+      --accent-soft: rgba(245, 158, 11, 0.15);
+      --accent-hover: #fbbf24;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.50);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* 상단 헤더바 */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .btn-icon {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-icon.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: none;
+    }
+    @media (min-width: 768px) {
+      .brand-sub { display: inline; margin-left: 6px; }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+    @media (max-width: 640px) {
+      .hide-mobile { display: none !important; }
+    }
+
+    /* 메인 레이아웃 */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      min-height: calc(100vh - 57px);
+    }
+
+    @media (max-width: 960px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: fixed;
+        top: 57px;
+        left: 0;
+        bottom: 0;
+        width: min(88vw, 360px);
+        z-index: 150;
+        transform: translateX(-102%);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-md);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 57px 0 0 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 140;
+      }
+      .sidebar-backdrop.open {
+        display: block;
+      }
+    }
+
+    /* 사이드바 (15막 스토리 목차 & 66권 선택) */
+    .sidebar {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 57px);
+      position: sticky;
+      top: 57px;
+      overflow: hidden;
+    }
+
+    .progress-summary-box {
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      height: 8px;
+      background: var(--bg-elevated);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #10b981);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-sub {
+      margin-top: 6px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .nav-mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 8px 12px;
+      gap: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-tab {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+    .nav-tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 12px 32px;
+    }
+
+    /* 15막 아코디언 카드 */
+    .act-group {
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-card);
+      overflow: hidden;
+    }
+    .act-header {
+      padding: 11px 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      user-select: none;
+    }
+    .act-header:hover {
+      background: var(--accent-soft);
+    }
+    .act-badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .act-title-text {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .act-era-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .ep-list {
+      border-top: 1px solid var(--border-color);
+      display: none;
+      padding: 6px;
+      background: var(--bg-main);
+    }
+    .act-group.expanded .ep-list {
+      display: block;
+    }
+    .ep-item {
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 3px;
+      transition: background 0.15s;
+    }
+    .ep-item:hover {
+      background: var(--bg-elevated);
+    }
+    .ep-item.active {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+    }
+    .ep-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      color: transparent;
+    }
+    .ep-item.completed .ep-check {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+    .ep-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ep-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .ep-range {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 본문 리더 영역 */
+    .reader-main {
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+    }
+    @media (min-width: 768px) {
+      .reader-main {
+        padding: 28px 36px 120px;
+      }
+    }
+
+    /* 스토리 브리핑 히어로 카드 */
+    .story-briefing-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .story-briefing-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--act-color, var(--accent));
+    }
+
+    .briefing-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .act-pill {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .era-pill {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .episode-heading {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.35;
+      margin-bottom: 10px;
+      letter-spacing: -0.4px;
+    }
+
+    .episode-summary {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      background: var(--bg-main);
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .guide-tip-box {
+      background: var(--accent-soft);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+    .guide-tip-title {
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    /* 인물 관계도 & 장소 토글칩 */
+    .context-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-color);
+    }
+    .context-drawer {
+      display: none;
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--bg-main);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+    .context-drawer.open {
+      display: block;
+    }
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .char-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .char-name {
+      font-weight: 800;
+      font-size: 13.5px;
+      color: var(--accent);
+    }
+    .char-role {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .char-rel {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* 장(Chapter) 선택 알약 탭 바 */
+    .chapter-tabs-bar {
+      position: sticky;
+      top: 57px;
+      z-index: 80;
+      background: var(--bg-main);
+      padding: 10px 0;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .chapter-tabs-bar::-webkit-scrollbar { display: none; }
+
+    .ch-pill {
+      padding: 7px 13px;
+      border-radius: 99px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .ch-pill.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .ch-pill.read-done {
+      border-color: var(--success);
+    }
+    .ch-pill .done-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    .ch-pill.active .done-dot {
+      background: #fff;
+    }
+
+    /* 성경 본문 카드 */
+    .scripture-paper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+    @media (min-width: 768px) {
+      .scripture-paper {
+        padding: 36px 42px;
+      }
+    }
+
+    .chapter-title-banner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .chapter-title-banner h2 {
+      font-family: var(--reader-font);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    /* LPC 주석 & 설교 연동 바 */
+    .vault-links-box {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 22px;
+    }
+    .vault-links-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .vault-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .vault-link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 8px;
+      text-decoration: none;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .vault-link-chip.lpc {
+      border-left: 3px solid var(--lpc-badge);
+    }
+    .vault-link-chip.sermon {
+      border-left: 3px solid var(--sermon-badge);
+    }
+    .vault-link-chip:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* 본문 타이포그래피: 스토리북 모드 vs 절별 모드 */
+    .bible-body {
+      font-family: var(--reader-font);
+      font-size: var(--reader-font-size);
+      line-height: var(--reader-line-height);
+      color: var(--text-primary);
+      word-break: keep-all;
+    }
+
+    .pericope-heading {
+      font-family: 'Pretendard', sans-serif;
+      font-size: calc(var(--reader-font-size) * 0.92);
+      font-weight: 800;
+      color: var(--accent);
+      margin: 28px 0 12px;
+      padding: 6px 12px;
+      background: var(--accent-soft);
+      border-radius: 8px;
+      display: inline-block;
+    }
+    .pericope-heading:first-child {
+      margin-top: 0;
+    }
+
+    /* 스토리북 문단 모드 */
+    .bible-body.mode-story .story-paragraph {
+      margin-bottom: 18px;
+      text-align: justify;
+    }
+    .bible-body.mode-story .v-num {
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.62em;
+      font-weight: 700;
+      color: var(--text-muted);
+      vertical-align: super;
+      margin-right: 3px;
+      margin-left: 4px;
+      opacity: 0.75;
+      user-select: none;
+    }
+    .bible-body.mode-story.hide-vnum .v-num {
+      display: none;
+    }
+
+    /* 전통 절별 모드 */
+    .bible-body.mode-verse .verse-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 4px 6px;
+      border-radius: 8px;
+    }
+    .bible-body.mode-verse .verse-row:hover {
+      background: var(--bg-main);
+    }
+    .bible-body.mode-verse .v-num {
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.75em;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 34px;
+      padding-top: 3px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    /* 구절 하이라이트 클릭 */
+    .v-text {
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .v-text.highlighted {
+      background: rgba(250, 204, 21, 0.35);
+      padding: 1px 0;
+    }
+
+    /* 묵상 메모장 */
+    .memo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }
+    .memo-card h3 {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .memo-textarea {
+      width: 100%;
+      min-height: 90px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    /* 하단 네비게이션 및 완료 버튼 */
+    .bottom-nav-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-complete-big {
+      flex: 1;
+      min-width: 200px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: 2px solid var(--success);
+      background: var(--success-soft);
+      color: var(--success);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-complete-big.completed {
+      background: var(--success);
+      color: #fff;
+    }
+
+    /* 모달 팝업 (설정 / 전체 타임라인 / 검색 / 모바일 동기화) */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      max-width: 640px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: var(--shadow-md);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .modal-header h3 {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    /* 66권 그리드 선택기 */
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+      gap: 6px;
+    }
+    .book-chip {
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+    .book-chip.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 상단 헤더 -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="btn-icon" onclick="toggleSidebar()" title="목차 열기/닫기">☰ 목차</button>
+      <div>
+        <span class="brand-title">📖 스토리 성경통독</span>
+        <span class="brand-sub">개역개정4판 · 구속사 15막 드라마 & LPC 연동</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon active" id="btn-mode-toggle" onclick="toggleReadingMode()" title="소설책 문단 모드 / 절별 모드 전환">📚 <span class="hide-mobile">스토리북 뷰</span></button>
+      <button class="btn-icon" id="btn-vnum-toggle" onclick="toggleVerseNumbers()" title="절 번호 숨기기/보이기">🔢 <span class="hide-mobile">절번호</span></button>
+      <button class="btn-icon" onclick="openModal('modal-search')" title="성경 본문 검색">🔍 <span class="hide-mobile">검색</span></button>
+      <button class="btn-icon" onclick="openMobileConnectModal()" title="스마트폰에서 열기 & QR코드">📱 <span class="hide-mobile">폰 연결</span></button>
+      <button class="btn-icon" onclick="openModal('modal-settings')" title="글자 크기·테마·동기화 설정">⚙️</button>
+    </div>
+  </header>
+
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+  <div class="app-layout">
+    <!-- 좌측 사이드바 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="progress-summary-box">
+        <div class="progress-top">
+          <span>🏆 나의 통독 진도율</span>
+          <span id="progress-percent">0.0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+        <div class="progress-sub">
+          <span id="progress-ep-count">에피소드 0 / 78 완료</span>
+          <span id="progress-ch-count">0 / 1,189장</span>
+        </div>
+      </div>
+
+      <div class="nav-mode-tabs">
+        <button class="nav-tab active" id="tab-story" onclick="switchNavTab('story')">🎬 15막 스토리북</button>
+        <button class="nav-tab" id="tab-books" onclick="switchNavTab('books')">📚 성경 66권 전체</button>
+      </div>
+
+      <div class="sidebar-scroll" id="sidebar-content">
+        <!-- JS에서 렌더링 -->
+      </div>
+    </aside>
+
+    <!-- 우측 본문 리더 -->
+    <main class="reader-main" id="reader-main">
+      <!-- 스토리 브리핑 카드 -->
+      <section class="story-briefing-card" id="briefing-card">
+        <div class="briefing-top-row">
+          <span class="act-pill" id="ui-act-pill">제1막</span>
+          <span class="era-pill" id="ui-era-pill">원역사 시대</span>
+        </div>
+        <h1 class="episode-heading" id="ui-ep-title">로딩 중...</h1>
+        <div class="episode-summary" id="ui-ep-summary"></div>
+        <div class="guide-tip-box" id="ui-ep-tip-box">
+          <div class="guide-tip-title">💡 스토리 맥락 & 통독 가이드</div>
+          <div id="ui-ep-tip"></div>
+        </div>
+
+        <div class="context-chips-row">
+          <button class="btn-icon" onclick="toggleContextDrawer('chars')">👥 등장인물 관계도 보기</button>
+          <button class="btn-icon" onclick="toggleContextDrawer('places')">🗺️ 주요 지명 & 시대 연대표</button>
+          <button class="btn-icon" id="btn-tts" onclick="toggleSpeech()">🔊 본문 듣기(오디오)</button>
+        </div>
+
+        <div class="context-drawer" id="drawer-chars">
+          <div style="font-size:12.5px; font-weight:800; color:var(--text-muted);">이 막(Act)의 중심 인물 관계도</div>
+          <div class="char-grid" id="ui-char-grid"></div>
+        </div>
+
+        <div class="context-drawer" id="drawer-places">
+          <div style="font-size:12.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px;">📍 주요 무대 및 구속사 연대표 위치</div>
+          <div id="ui-places-list" style="font-size:13.5px; font-weight:600; margin-bottom:10px;"></div>
+          <div id="ui-timeline-mini" style="font-size:12.5px; color:var(--text-secondary);"></div>
+        </div>
+      </section>
+
+      <!-- 장(Chapter) 전환 탭 바 -->
+      <nav class="chapter-tabs-bar" id="chapter-tabs-bar"></nav>
+
+      <!-- 성경 본문 용지 -->
+      <article class="scripture-paper">
+        <div class="chapter-title-banner">
+          <h2 id="ui-chapter-heading">창세기 1장</h2>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn-icon" id="btn-ch-check" onclick="toggleCurrentChapterDone()">✓ 이 장 읽음 체크</button>
+          </div>
+        </div>
+
+        <!-- 볼트 내 LPC 주석 & 설교 연동 영역 -->
+        <div class="vault-links-box" id="ui-vault-links" style="display:none;">
+          <div class="vault-links-title">🏛️ 두 번째 서재 연동 — 목사님의 LPC 주석 & 설교 노트 (클릭 시 옵시디언으로 열기)</div>
+          <div class="vault-badges" id="ui-vault-badges"></div>
+        </div>
+
+        <!-- 성경 구절 본문 -->
+        <div class="bible-body mode-story" id="ui-bible-body"></div>
+      </article>
+
+      <!-- 나의 스토리 묵상 노트 -->
+      <section class="memo-card">
+        <h3>
+          <span>✍️ 이 본문 한 줄 묵상 & 깨달음 기록</span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-icon" style="padding:4px 9px; font-size:12px;" onclick="copyMemoForObsidian()">📋 옵시디언용 복사</button>
+          </div>
+        </h3>
+        <textarea class="memo-textarea" id="ui-memo-input" placeholder="오늘 스토리를 읽으며 마음에 와닿은 구절이나 하나님의 마음을 적어보세요. (자동 저장됩니다)" oninput="saveCurrentMemo()"></textarea>
+      </section>
+
+      <!-- 하단 장/에피소드 이동 바 -->
+      <div class="bottom-nav-card">
+        <button class="btn-icon" onclick="movePrevChapter()">← 이전 장</button>
+        <button class="btn-complete-big" id="btn-complete-ch-bottom" onclick="completeAndNextChapter()">✅ 이 장 읽음 완료 & 다음 장으로 →</button>
+        <button class="btn-icon" onclick="moveNextEpisode()">다음 에피소드 ⏭</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- 검색 모달 -->
+  <div class="modal-backdrop" id="modal-search" onclick="if(event.target===this)closeModal('modal-search')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🔍 개역개정 성경 66권 초고속 검색</h3>
+        <button class="btn-icon" onclick="closeModal('modal-search')">✕ 닫기</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <input type="text" id="search-input" placeholder="검색어 또는 구절 입력 (예: 태초에, 여호와는 나의 목자, 사랑은 오래 참고)" style="flex:1; padding:11px 14px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); font-size:14px;" onkeydown="if(event.key==='Enter')runBibleSearch()">
+        <button class="btn-icon active" onclick="runBibleSearch()">검색</button>
+      </div>
+      <div id="search-results" style="max-height:55vh; overflow-y:auto; font-size:13.5px;">
+        <div style="color:var(--text-muted); text-align:center; padding:20px;">성경 31,133절 전체에서 단어나 소제목을 즉시 찾습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설정 및 폰/컴퓨터 동기화 모달 -->
+  <div class="modal-backdrop" id="modal-settings" onclick="if(event.target===this)closeModal('modal-settings')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚙️ 읽기 환경 설정 & 폰·컴퓨터 사용 안내</h3>
+        <button class="btn-icon" onclick="closeModal('modal-settings')">✕ 닫기</button>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <div style="font-weight:700; font-size:13.5px; margin-bottom:8px;">🎨 배경 테마</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-icon" onclick="setTheme('sepia')">📜 종이책(세피아)</button>
+          <button class="btn-icon" onclick="setTheme('light')">☀️ 화이트</button>
+          <button class="btn-icon" onclick="setTheme('dark')">🌙 다크 모드</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <div style="font-weight:700; font-size:13.5px; margin-bottom:8px;">🔠 본문 글자 크기</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-icon" onclick="changeFontSize(-2)">가 -</button>
+          <span id="font-size-label" style="font-weight:700; min-width:50px; text-align:center;">19px</span>
+          <button class="btn-icon" onclick="changeFontSize(2)">가 +</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:18px; padding-top:14px; border-top:1px solid var(--border-color);">
+        <div style="font-weight:800; font-size:14px; margin-bottom:6px; color:var(--accent);">📱 스마트폰 & 컴퓨터에서 함께 쓰는 방법</div>
+        <div style="font-size:13px; color:var(--text-secondary); line-height:1.65; background:var(--bg-main); padding:12px; border-radius:10px;">
+          1. <strong>컴퓨터에서:</strong> 볼트 폴더의 <code>스토리_성경통독.html</code>을 더블클릭하면 인터넷 없이도 즉시 열립니다.<br>
+          2. <strong>집/교회 와이파이로 폰에서 바로 열기:</strong> 터미널(또는 실행 파일)로 로컬 서버를 켜면 스마트폰 사파리/크롬에서 접속해 <strong>[홈 화면에 추가]</strong>하여 전용 앱처럼 전체화면으로 읽을 수 있습니다.<br>
+          3. <strong>기기 간 통독 진도 & 묵상 동기화:</strong> 아래 [진도 데이터 복사/불러오기]로 폰과 컴퓨터의 진도를 1초 만에 옮길 수 있습니다.
+        </div>
+      </div>
+
+      <div style="padding-top:10px; border-top:1px solid var(--border-color);">
+        <div style="font-weight:700; font-size:13.5px; margin-bottom:8px;">🔄 통독 진도 & 묵상 노트 백업 / 동기화</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button class="btn-icon" onclick="exportProgressCode()">📤 진도 코드 복사하기</button>
+          <button class="btn-icon" onclick="importProgressCode()">📥 진도 코드 붙여넣기</button>
+          <button class="btn-icon" onclick="downloadAllMemosMarkdown()">📝 전체 묵상 마크다운(.md) 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스마트폰 연결 & QR코드 모달 -->
+  <div class="modal-backdrop" id="modal-mobile" onclick="if(event.target===this)closeModal('modal-mobile')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>📱 스마트폰 & 태블릿에서 바로 열기</h3>
+        <button class="btn-icon" onclick="closeModal('modal-mobile')">✕ 닫기</button>
+      </div>
+      <div id="mobile-connect-body" style="font-size:14px; line-height:1.65; color:var(--text-secondary);">
+        연결 정보를 확인하고 있습니다...
+      </div>
+    </div>
+  </div>
+
+  <!-- 성경 데이터 로드 -->
+  <script src="bible_story_data.js"></script>
+  <script>
+    const STORAGE_KEY = 'SECOND_LIBRARY_STORY_BIBLE_V1';
+    const VAULT_NAME = 'second-library-starter-vault-main';
+
+    let state = {
+      navTab: 'story',          // 'story' | 'books'
+      currentEpId: 'ep01',
+      currentBook: '창',
+      currentChapter: 1,
+      readingMode: 'story',     // 'story' (문단형) | 'verse' (절별)
+      hideVerseNum: false,
+      theme: 'sepia',
+      fontSize: 19,
+      readChapters: {},         // { "창:1": true, ... }
+      highlights: {},           // { "창:1:1": true }
+      memos: {},                // { "창:1": "..." }
+      expandedActs: { 1: true }
+    };
+
+    const BOOK_MAP = {};
+    const EP_MAP = {};
+    const ACT_BY_EP = {};
+
+    function initApp() {
+      if (!window.BIBLE_STORY_DATA) {
+        document.getElementById('ui-ep-title').textContent = '데이터 파일(bible_story_data.js)을 찾을 수 없습니다.';
+        return;
+      }
+
+      window.BIBLE_STORY_DATA.books.forEach(b => {
+        BOOK_MAP[b.abbr] = b;
+      });
+
+      window.BIBLE_STORY_DATA.acts.forEach(act => {
+        act.episodes.forEach(ep => {
+          EP_MAP[ep.id] = ep;
+          ACT_BY_EP[ep.id] = act;
+        });
+      });
+
+      loadState();
+      applyThemeAndFont();
+      renderSidebar();
+      loadEpisodeOrChapter();
+      updateProgressUI();
+      syncWithLocalServerOnLoad();
+    }
+
+    async function syncWithLocalServerOnLoad() {
+      if (!location.protocol.startsWith('http')) return;
+      try {
+        const res = await fetch('/api/progress');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.ok && json.data) {
+          state.readChapters = Object.assign({}, state.readChapters, json.data.readChapters || {});
+          state.highlights = Object.assign({}, state.highlights, json.data.highlights || {});
+          state.memos = Object.assign({}, state.memos, json.data.memos || {});
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          renderSidebar();
+          loadEpisodeOrChapter();
+          updateProgressUI();
+        }
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = Object.assign({}, state, parsed);
+        }
+      } catch (e) {
+        console.warn('LocalStorage load error:', e);
+      }
+    }
+
+    function saveState(fullReplace = false) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('LocalStorage save error:', e);
+      }
+      if (location.protocol.startsWith('http')) {
+        fetch('/api/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ _fullReplace: fullReplace }, state))
+        }).catch(() => {});
+      }
+    }
+
+    function applyThemeAndFont() {
+      document.documentElement.setAttribute('data-theme', state.theme || 'sepia');
+      document.documentElement.style.setProperty('--reader-font-size', (state.fontSize || 19) + 'px');
+      const lbl = document.getElementById('font-size-label');
+      if (lbl) lbl.textContent = (state.fontSize || 19) + 'px';
+
+      const modeBtn = document.getElementById('btn-mode-toggle');
+      if (modeBtn) {
+        modeBtn.textContent = state.readingMode === 'story' ? '📚 스토리북 뷰' : '📑 절별 성경 뷰';
+        modeBtn.classList.toggle('active', state.readingMode === 'story');
+      }
+
+      const vnumBtn = document.getElementById('btn-vnum-toggle');
+      if (vnumBtn) {
+        vnumBtn.textContent = state.hideVerseNum ? '🔢 절번호 꺼짐' : '🔢 절번호 켜짐';
+        vnumBtn.classList.toggle('active', !state.hideVerseNum);
+      }
+    }
+
+    function setTheme(theme) {
+      state.theme = theme;
+      applyThemeAndFont();
+      saveState();
+    }
+
+    function changeFontSize(delta) {
+      state.fontSize = Math.min(30, Math.max(14, (state.fontSize || 19) + delta));
+      applyThemeAndFont();
+      saveState();
+    }
+
+    function toggleReadingMode() {
+      state.readingMode = state.readingMode === 'story' ? 'verse' : 'story';
+      applyThemeAndFont();
+      renderScriptureBody();
+      saveState();
+    }
+
+    function toggleVerseNumbers() {
+      state.hideVerseNum = !state.hideVerseNum;
+      applyThemeAndFont();
+      renderScriptureBody();
+      saveState();
+    }
+
+    function switchNavTab(tab) {
+      state.navTab = tab;
+      document.getElementById('tab-story').classList.toggle('active', tab === 'story');
+      document.getElementById('tab-books').classList.toggle('active', tab === 'books');
+      renderSidebar();
+      saveState();
+    }
+
+    function isEpisodeCompleted(ep) {
+      for (const r of ep.readings) {
+        for (let c = r.s; c <= r.e; c++) {
+          if (!state.readChapters[`${r.b}:${c}`]) return false;
+        }
+      }
+      return true;
+    }
+
+    function formatReadingsLabel(readings) {
+      return readings.map(r => {
+        const bName = BOOK_MAP[r.b] ? BOOK_MAP[r.b].name : r.b;
+        return r.s === r.e ? `${bName} ${r.s}장` : `${bName} ${r.s}~${r.e}장`;
+      }).join(', ');
+    }
+
+    function renderSidebar() {
+      const container = document.getElementById('sidebar-content');
+      if (!container) return;
+
+      if (state.navTab === 'story') {
+        let html = '';
+        window.BIBLE_STORY_DATA.acts.forEach(act => {
+          const isExp = !!state.expandedActs[act.act];
+          const doneEps = act.episodes.filter(isEpisodeCompleted).length;
+          html += `
+            <div class="act-group ${isExp ? 'expanded' : ''}" id="act-group-${act.act}">
+              <div class="act-header" onclick="toggleAct(${act.act})">
+                <div>
+                  <span class="act-badge" style="background:${act.theme_color}">ACT ${act.act} · ${doneEps}/${act.episodes.length}</span>
+                  <div class="act-title-text">${act.title.replace(/^제\d+막\s*·\s*/, '')}</div>
+                  <div class="act-era-text">${act.era}</div>
+                </div>
+                <span style="font-size:12px; color:var(--text-muted);">${isExp ? '▲' : '▼'}</span>
+              </div>
+              <div class="ep-list">
+                ${act.episodes.map((ep, idx) => {
+                  const done = isEpisodeCompleted(ep);
+                  const active = state.currentEpId === ep.id;
+                  return `
+                    <div class="ep-item ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectEpisode('${ep.id}')">
+                      <div class="ep-check">${done ? '✓' : (idx + 1)}</div>
+                      <div class="ep-info">
+                        <div class="ep-name">${ep.title}</div>
+                        <div class="ep-range">📖 ${formatReadingsLabel(ep.readings)}</div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } else {
+        // 66권 전체 선택 모드
+        const otBooks = window.BIBLE_STORY_DATA.books.filter(b => b.testament === '구약');
+        const ntBooks = window.BIBLE_STORY_DATA.books.filter(b => b.testament === '신약');
+        container.innerHTML = `
+          <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin:6px 0 8px;">구약 성경 (39권)</div>
+          <div class="book-grid" style="margin-bottom:16px;">
+            ${otBooks.map(b => `
+              <div class="book-chip ${state.currentBook === b.abbr ? 'active' : ''}" onclick="selectBookDirect('${b.abbr}')">
+                ${b.name}
+              </div>
+            `).join('')}
+          </div>
+          <div style="font-size:12px; font-weight:800; color:var(--text-muted); margin:6px 0 8px;">신약 성경 (27권)</div>
+          <div class="book-grid">
+            ${ntBooks.map(b => `
+              <div class="book-chip ${state.currentBook === b.abbr ? 'active' : ''}" onclick="selectBookDirect('${b.abbr}')">
+                ${b.name}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function toggleAct(actNum) {
+      state.expandedActs[actNum] = !state.expandedActs[actNum];
+      renderSidebar();
+      saveState();
+    }
+
+    function selectEpisode(epId, targetBook, targetChapter) {
+      stopSpeech();
+      const ep = EP_MAP[epId];
+      if (!ep) return;
+      state.currentEpId = epId;
+      const act = ACT_BY_EP[epId];
+      if (act) state.expandedActs[act.act] = true;
+
+      if (targetBook && targetChapter) {
+        state.currentBook = targetBook;
+        state.currentChapter = targetChapter;
+      } else {
+        state.currentBook = ep.readings[0].b;
+        state.currentChapter = ep.readings[0].s;
+      }
+
+      loadEpisodeOrChapter();
+      renderSidebar();
+      saveState();
+      toggleSidebar(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function selectBookDirect(bookAbbr, chapterNum = 1) {
+      stopSpeech();
+      state.currentBook = bookAbbr;
+      state.currentChapter = chapterNum;
+
+      // 해당 책·장이 포함된 에피소드를 자동으로 찾아 스토리 브리핑 연결
+      for (const act of window.BIBLE_STORY_DATA.acts) {
+        for (const ep of act.episodes) {
+          for (const r of ep.readings) {
+            if (r.b === bookAbbr && chapterNum >= r.s && chapterNum <= r.e) {
+              state.currentEpId = ep.id;
+              state.expandedActs[act.act] = true;
+              break;
+            }
+          }
+        }
+      }
+
+      loadEpisodeOrChapter();
+      renderSidebar();
+      saveState();
+      toggleSidebar(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function loadEpisodeOrChapter() {
+      const ep = EP_MAP[state.currentEpId] || window.BIBLE_STORY_DATA.acts[0].episodes[0];
+      const act = ACT_BY_EP[ep.id] || window.BIBLE_STORY_DATA.acts[0];
+
+      // 브리핑 카드 업데이트
+      const card = document.getElementById('briefing-card');
+      card.style.setProperty('--act-color', act.theme_color);
+      document.getElementById('ui-act-pill').textContent = act.title;
+      document.getElementById('ui-era-pill').textContent = `⏳ ${act.era}`;
+      document.getElementById('ui-ep-title').textContent = ep.title;
+      document.getElementById('ui-ep-summary').textContent = ep.summary;
+      document.getElementById('ui-ep-tip').textContent = ep.tip;
+
+      // 등장인물 관계도 렌더링
+      const charGrid = document.getElementById('ui-char-grid');
+      charGrid.innerHTML = (act.characters || []).map(c => `
+        <div class="char-card">
+          <div class="char-name">${c.name}</div>
+          <div class="char-role">${c.role}</div>
+          <div class="char-rel">${c.rel}</div>
+        </div>
+      `).join('');
+
+      // 장소 및 타임라인 렌더링
+      document.getElementById('ui-places-list').innerHTML =
+        (act.places || []).map(p => `<span style="display:inline-block; background:var(--bg-card); border:1px solid var(--border-color); padding:3px 10px; border-radius:99px; margin-right:6px; margin-bottom:4px;">📍 ${p}</span>`).join('');
+
+      document.getElementById('ui-timeline-mini').innerHTML =
+        window.BIBLE_STORY_DATA.acts.map(a =>
+          `<span style="display:inline-block; padding:2px 7px; margin:2px; border-radius:6px; font-weight:${a.act===act.act?'800':'500'}; background:${a.act===act.act?a.theme_color:'var(--bg-card)'}; color:${a.act===act.act?'#fff':'var(--text-muted)'}; cursor:pointer;" onclick="selectEpisode('${a.episodes[0].id}')">${a.act}막</span>`
+        ).join(' → ');
+
+      renderChapterTabs(ep);
+      renderScriptureBody();
+    }
+
+    function getEpisodeChapterList(ep) {
+      const list = [];
+      if (state.navTab === 'books') {
+        const bMeta = BOOK_MAP[state.currentBook];
+        if (bMeta) {
+          for (let c = 1; c <= bMeta.chapters; c++) {
+            list.push({ b: bMeta.abbr, c });
+          }
+          return list;
+        }
+      }
+      ep.readings.forEach(r => {
+        for (let c = r.s; c <= r.e; c++) {
+          list.push({ b: r.b, c });
+        }
+      });
+      return list;
+    }
+
+    function renderChapterTabs(ep) {
+      const bar = document.getElementById('chapter-tabs-bar');
+      const chList = getEpisodeChapterList(ep);
+
+      bar.innerHTML = chList.map(item => {
+        const bName = BOOK_MAP[item.b] ? BOOK_MAP[item.b].name : item.b;
+        const isCurrent = item.b === state.currentBook && item.c === state.currentChapter;
+        const isDone = !!state.readChapters[`${item.b}:${item.c}`];
+        return `
+          <button class="ch-pill ${isCurrent ? 'active' : ''} ${isDone ? 'read-done' : ''}" id="ch-pill-${item.b}-${item.c}" onclick="switchChapter('${item.b}', ${item.c})">
+            ${isDone ? '<span class="done-dot"></span>' : ''}
+            <span>${bName} ${item.c}장</span>
+          </button>
+        `;
+      }).join('');
+
+      setTimeout(() => {
+        const activeBtn = document.getElementById(`ch-pill-${state.currentBook}-${state.currentChapter}`);
+        if (activeBtn) {
+          activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }, 50);
+    }
+
+    function switchChapter(bookAbbr, chNum) {
+      stopSpeech();
+      state.currentBook = bookAbbr;
+      state.currentChapter = chNum;
+
+      // 에피소드 동기화
+      for (const act of window.BIBLE_STORY_DATA.acts) {
+        for (const ep of act.episodes) {
+          for (const r of ep.readings) {
+            if (r.b === bookAbbr && chNum >= r.s && chNum <= r.e) {
+              state.currentEpId = ep.id;
+              break;
+            }
+          }
+        }
+      }
+
+      const ep = EP_MAP[state.currentEpId];
+      renderChapterTabs(ep);
+      renderScriptureBody();
+      saveState();
+      const paperTop = document.getElementById('chapter-tabs-bar').offsetTop - 60;
+      window.scrollTo({ top: Math.max(0, paperTop), behavior: 'smooth' });
+    }
+
+    function renderScriptureBody() {
+      const bAbbr = state.currentBook;
+      const chNum = state.currentChapter;
+      const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+      const chKey = `${bAbbr}:${chNum}`;
+
+      document.getElementById('ui-chapter-heading').textContent = `${bName} ${chNum}장`;
+
+      const isDone = !!state.readChapters[chKey];
+      const topBtn = document.getElementById('btn-ch-check');
+      topBtn.textContent = isDone ? '✅ 읽음 완료됨' : '✓ 이 장 읽음 체크';
+      topBtn.classList.toggle('active', isDone);
+
+      const botBtn = document.getElementById('btn-complete-ch-bottom');
+      botBtn.textContent = isDone ? '✅ 읽음 완료! (다음 장으로 이동 →)' : '✅ 이 장 읽음 완료 & 다음 장으로 →';
+      botBtn.classList.toggle('completed', isDone);
+
+      // 볼트 내 LPC 주석 & 설교 연동 표시
+      const lpcList = (window.BIBLE_STORY_DATA.lpc_map && window.BIBLE_STORY_DATA.lpc_map[chKey]) || [];
+      const sermonList = (window.BIBLE_STORY_DATA.sermon_map && window.BIBLE_STORY_DATA.sermon_map[chKey]) || [];
+      const vaultBox = document.getElementById('ui-vault-links');
+      const vaultBadges = document.getElementById('ui-vault-badges');
+
+      if (lpcList.length > 0 || sermonList.length > 0) {
+        vaultBox.style.display = 'block';
+        let badgesHtml = '';
+        lpcList.forEach(item => {
+          const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
+          badgesHtml += `<a class="vault-link-chip lpc" href="${obsUrl}" title="옵시디언에서 LPC 주석 열기">📘 [LPC 주석] ${escapeHtml(item.title)}</a>`;
+        });
+        sermonList.forEach(item => {
+          const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
+          badgesHtml += `<a class="vault-link-chip sermon" href="${obsUrl}" title="옵시디언에서 설교 노트 열기">🎙️ [설교] ${escapeHtml(item.title)}</a>`;
+        });
+        vaultBadges.innerHTML = badgesHtml;
+      } else {
+        vaultBox.style.display = 'none';
+      }
+
+      // 성경 구절 렌더링
+      const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
+      const bodyEl = document.getElementById('ui-bible-body');
+      bodyEl.className = `bible-body mode-${state.readingMode} ${state.hideVerseNum ? 'hide-vnum' : ''}`;
+
+      if (state.readingMode === 'story') {
+        // 스토리북 문단 모드: 소제목(h)이나 대화/단락 흐름에 따라 자연스러운 문단으로 묶어 표시
+        let html = '<div class="story-paragraph">';
+        verses.forEach((v, idx) => {
+          const vKey = `${bAbbr}:${chNum}:${v.v}`;
+          const hl = state.highlights[vKey] ? 'highlighted' : '';
+          if (v.h) {
+            if (idx > 0) html += '</div>';
+            html += `<div class="pericope-heading">🔖 ${escapeHtml(v.h)}</div><div class="story-paragraph">`;
+          } else if (idx > 0 && idx % 5 === 0) {
+            html += '</div><div class="story-paragraph">';
+          }
+          html += `<span class="v-num">${v.v}</span><span class="v-text ${hl}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span> `;
+        });
+        html += '</div>';
+        bodyEl.innerHTML = html;
+      } else {
+        // 절별 모드
+        let html = '';
+        verses.forEach(v => {
+          const vKey = `${bAbbr}:${chNum}:${v.v}`;
+          const hl = state.highlights[vKey] ? 'highlighted' : '';
+          if (v.h) {
+            html += `<div class="pericope-heading">🔖 ${escapeHtml(v.h)}</div>`;
+          }
+          html += `
+            <div class="verse-row">
+              <span class="v-num">${v.v}절</span>
+              <span class="v-text ${hl}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span>
+            </div>
+          `;
+        });
+        bodyEl.innerHTML = html;
+      }
+
+      // 메모 로드
+      document.getElementById('ui-memo-input').value = state.memos[chKey] || '';
+    }
+
+    function toggleHighlight(vKey, el) {
+      if (state.highlights[vKey]) {
+        delete state.highlights[vKey];
+        el.classList.remove('highlighted');
+      } else {
+        state.highlights[vKey] = true;
+        el.classList.add('highlighted');
+      }
+      saveState();
+    }
+
+    function toggleCurrentChapterDone() {
+      const chKey = `${state.currentBook}:${state.currentChapter}`;
+      if (state.readChapters[chKey]) {
+        delete state.readChapters[chKey];
+      } else {
+        state.readChapters[chKey] = true;
+      }
+      saveState(true);
+      updateProgressUI();
+      renderSidebar();
+      renderChapterTabs(EP_MAP[state.currentEpId]);
+      renderScriptureBody();
+    }
+
+    function completeAndNextChapter() {
+      const chKey = `${state.currentBook}:${state.currentChapter}`;
+      state.readChapters[chKey] = true;
+      saveState();
+      updateProgressUI();
+      moveNextChapter();
+    }
+
+    function moveNextChapter() {
+      const ep = EP_MAP[state.currentEpId];
+      const list = getEpisodeChapterList(ep);
+      const idx = list.findIndex(x => x.b === state.currentBook && x.c === state.currentChapter);
+      if (idx >= 0 && idx + 1 < list.length) {
+        switchChapter(list[idx + 1].b, list[idx + 1].c);
+        renderSidebar();
+      } else {
+        moveNextEpisode();
+      }
+    }
+
+    function movePrevChapter() {
+      const ep = EP_MAP[state.currentEpId];
+      const list = getEpisodeChapterList(ep);
+      const idx = list.findIndex(x => x.b === state.currentBook && x.c === state.currentChapter);
+      if (idx > 0) {
+        switchChapter(list[idx - 1].b, list[idx - 1].c);
+      }
+    }
+
+    function moveNextEpisode() {
+      const allEps = [];
+      window.BIBLE_STORY_DATA.acts.forEach(a => a.episodes.forEach(e => allEps.push(e.id)));
+      const idx = allEps.indexOf(state.currentEpId);
+      if (idx >= 0 && idx + 1 < allEps.length) {
+        selectEpisode(allEps[idx + 1]);
+      }
+    }
+
+    function updateProgressUI() {
+      const totalChapters = 1189;
+      const doneChapters = Object.keys(state.readChapters).length;
+      const pct = ((doneChapters / totalChapters) * 100).toFixed(1);
+
+      let totalEps = 0;
+      let doneEps = 0;
+      window.BIBLE_STORY_DATA.acts.forEach(a => {
+        a.episodes.forEach(ep => {
+          totalEps++;
+          if (isEpisodeCompleted(ep)) doneEps++;
+        });
+      });
+
+      document.getElementById('progress-percent').textContent = `${pct}%`;
+      document.getElementById('progress-bar-fill').style.width = `${pct}%`;
+      document.getElementById('progress-ep-count').textContent = `에피소드 ${doneEps} / ${totalEps} 완료`;
+      document.getElementById('progress-ch-count').textContent = `${doneChapters.toLocaleString()} / 1,189장`;
+    }
+
+    function saveCurrentMemo() {
+      const chKey = `${state.currentBook}:${state.currentChapter}`;
+      const val = document.getElementById('ui-memo-input').value;
+      if (val.trim()) {
+        state.memos[chKey] = val;
+      } else {
+        delete state.memos[chKey];
+      }
+      saveState();
+    }
+
+    function copyMemoForObsidian() {
+      const bName = BOOK_MAP[state.currentBook] ? BOOK_MAP[state.currentBook].name : state.currentBook;
+      const ep = EP_MAP[state.currentEpId];
+      const memo = document.getElementById('ui-memo-input').value.trim();
+      const text = `### 📖 [${bName} ${state.currentChapter}장] ${ep ? ep.title : ''}\n- **스토리 맥락**: ${ep ? ep.summary : ''}\n- **나의 묵상**:\n${memo || '(묵상 내용 없음)'}\n`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('옵시디언 노트에 붙여넣기 좋은 마크다운 형식으로 복사되었습니다!');
+      });
+    }
+
+    function toggleContextDrawer(which) {
+      const charDrawer = document.getElementById('drawer-chars');
+      const placeDrawer = document.getElementById('drawer-places');
+      if (which === 'chars') {
+        charDrawer.classList.toggle('open');
+        placeDrawer.classList.remove('open');
+      } else {
+        placeDrawer.classList.toggle('open');
+        charDrawer.classList.remove('open');
+      }
+    }
+
+    function toggleSidebar(force) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebar-backdrop');
+      const open = typeof force === 'boolean' ? force : !sb.classList.contains('open');
+      sb.classList.toggle('open', open);
+      bd.classList.toggle('open', open);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      if (id === 'modal-search') {
+        setTimeout(() => document.getElementById('search-input').focus(), 100);
+      }
+    }
+
+    async function openMobileConnectModal() {
+      openModal('modal-mobile');
+      const box = document.getElementById('mobile-connect-body');
+      let mobileUrl = '';
+      if (location.protocol.startsWith('http')) {
+        try {
+          const res = await fetch('/api/server-info');
+          if (res.ok) {
+            const info = await res.json();
+            mobileUrl = info.mobile_url;
+          }
+        } catch (e) {}
+      }
+
+      if (mobileUrl) {
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mobileUrl)}`;
+        box.innerHTML = `
+          <div style="text-align:center; padding:10px 0 16px;">
+            <div style="font-weight:800; font-size:15px; color:var(--text-primary); margin-bottom:10px;">
+              아래 QR코드를 스마트폰 카메라로 비추거나 주소를 입력하세요!
+            </div>
+            <img src="${qrImg}" alt="QR Code" style="width:180px; height:180px; border-radius:12px; border:4px solid #fff; box-shadow:var(--shadow-sm); margin-bottom:10px;" onerror="this.style.display='none'">
+            <div style="font-size:18px; font-weight:800; color:var(--accent); background:var(--bg-main); padding:10px 14px; border-radius:10px; display:inline-block; border:1px solid var(--border-color);">
+              ${mobileUrl}
+            </div>
+          </div>
+          <div style="background:var(--bg-main); padding:14px; border-radius:12px; border:1px solid var(--border-color); font-size:13px;">
+            <strong>💡 스마트폰 전용 앱처럼 설치하는 팁:</strong><br>
+            1. 스마트폰을 컴퓨터와 <strong>같은 와이파이(Wi-Fi)</strong>에 연결합니다.<br>
+            2. 아이폰(Safari) 또는 갤럭시(Chrome)에서 위 주소로 접속합니다.<br>
+            3. 브라우저 메뉴의 <strong>[공유 → 홈 화면에 추가]</strong>를 누르면 스마트폰 바탕화면에 <strong>『스토리성경』 앱 아이콘</strong>이 생기고, 컴퓨터와 통독 진도·묵상이 실시간으로 자동 연동됩니다!
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <div style="background:var(--bg-main); padding:16px; border-radius:12px; border:1px solid var(--border-color);">
+            <div style="font-weight:800; font-size:15px; color:var(--accent); margin-bottom:8px;">
+              🚀 1초 만에 스마트폰과 실시간 연결하기
+            </div>
+            <p style="margin-bottom:10px;">
+              현재는 컴퓨터 로컬 파일로 열려 있습니다. 스마트폰에서도 똑같이 열고 진도를 실시간 공유하려면:
+            </p>
+            <ol style="padding-left:18px; margin-bottom:12px;">
+              <li>볼트 폴더에 있는 <strong><code>스토리성경_실행.command</code></strong> 파일을 더블클릭하세요.</li>
+              <li>자동으로 열리는 창에서 <strong>[📱 폰 연결]</strong> 버튼을 누르면 <strong>스마트폰 접속용 QR코드와 주소</strong>가 나타나며, 폰과 컴퓨터의 진도·묵상이 자동 동기화됩니다!</li>
+            </ol>
+            <div style="font-size:12.5px; color:var(--text-muted); border-top:1px dashed var(--border-color); padding-top:8px;">
+              ※ 와이파이 없이 외부(이동 중)에서도 스마트폰 단독으로 보시려면 구글 드라이브/파일 앱에 <code>스토리_성경통독.html</code>과 <code>bible_story_data.js</code>를 넣거나 개인 GitHub Pages에 올려 언제 어디서나 열 수 있습니다.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    function runBibleSearch() {
+      const q = document.getElementById('search-input').value.trim();
+      const resBox = document.getElementById('search-results');
+      if (!q || q.length < 2) {
+        resBox.innerHTML = '<div style="padding:16px; color:var(--text-muted);">두 글자 이상 검색어를 입력해 주세요.</div>';
+        return;
+      }
+
+      const matches = [];
+      for (const b of window.BIBLE_STORY_DATA.books) {
+        const chMap = window.BIBLE_STORY_DATA.bible[b.abbr] || {};
+        for (const [cStr, verses] of Object.entries(chMap)) {
+          for (const v of verses) {
+            if ((v.t && v.t.includes(q)) || (v.h && v.h.includes(q))) {
+              matches.push({ abbr: b.abbr, name: b.name, c: Number(cStr), v: v.v, t: v.t, h: v.h });
+              if (matches.length >= 100) break;
+            }
+          }
+          if (matches.length >= 100) break;
+        }
+        if (matches.length >= 100) break;
+      }
+
+      if (matches.length === 0) {
+        resBox.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted);">"${escapeHtml(q)}"에 대한 검색 결과가 없습니다.</div>`;
+        return;
+      }
+
+      resBox.innerHTML = `
+        <div style="font-size:12px; font-weight:700; color:var(--accent); margin-bottom:10px;">검색 결과 ${matches.length}${matches.length===100?'+':''}건 (클릭하면 해당 장으로 이동)</div>
+        ${matches.map(m => `
+          <div style="padding:10px; border-bottom:1px solid var(--border-color); cursor:pointer;" onclick="closeModal('modal-search'); selectBookDirect('${m.abbr}', ${m.c})">
+            <div style="font-weight:800; font-size:13px; color:var(--accent);">${m.name} ${m.c}:${m.v} ${m.h ? `<span style="color:var(--text-muted); font-weight:600;">· ${escapeHtml(m.h)}</span>` : ''}</div>
+            <div style="font-size:13.5px; margin-top:3px;">${escapeHtml(m.t).replaceAll(escapeHtml(q), `<mark style="background:rgba(245,158,11,0.35); color:inherit;">${escapeHtml(q)}</mark>`)}</div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    // 음성 낭독 (TTS)
+    let isSpeaking = false;
+    function toggleSpeech() {
+      if (!('speechSynthesis' in window)) {
+        alert('이 브라우저는 음성 낭독(TTS)을 지원하지 않습니다.');
+        return;
+      }
+      if (isSpeaking) {
+        stopSpeech();
+        return;
+      }
+      const bAbbr = state.currentBook;
+      const chNum = state.currentChapter;
+      const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+      const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
+      const fullText = `${bName} ${chNum}장. ` + verses.map(v => v.t).join(' ');
+
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(fullText);
+      utter.lang = 'ko-KR';
+      utter.rate = 1.0;
+      utter.onend = () => {
+        isSpeaking = false;
+        document.getElementById('btn-tts').textContent = '🔊 본문 듣기(오디오)';
+      };
+      isSpeaking = true;
+      document.getElementById('btn-tts').textContent = '⏹ 낭독 정지';
+      window.speechSynthesis.speak(utter);
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      isSpeaking = false;
+      const btn = document.getElementById('btn-tts');
+      if (btn) btn.textContent = '🔊 본문 듣기(오디오)';
+    }
+
+    // 기기 간 동기화 코드 내보내기 / 가져오기
+    function exportProgressCode() {
+      const payload = {
+        readChapters: state.readChapters,
+        highlights: state.highlights,
+        memos: state.memos,
+        currentEpId: state.currentEpId,
+        currentBook: state.currentBook,
+        currentChapter: state.currentChapter
+      };
+      const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      navigator.clipboard.writeText(code).then(() => {
+        alert('통독 진도 & 묵상 코드가 클립보드에 복사되었습니다!\n스마트폰이나 다른 컴퓨터에서 [진도 코드 붙여넣기]를 눌러 붙여넣으시면 그대로 이어집니다.');
+      });
+    }
+
+    function importProgressCode() {
+      const code = prompt('복사해 둔 통독 진도 코드를 붙여넣어 주세요:');
+      if (!code) return;
+      try {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+        state.readChapters = Object.assign({}, state.readChapters, decoded.readChapters || {});
+        state.highlights = Object.assign({}, state.highlights, decoded.highlights || {});
+        state.memos = Object.assign({}, state.memos, decoded.memos || {});
+        if (decoded.currentEpId) state.currentEpId = decoded.currentEpId;
+        if (decoded.currentBook) state.currentBook = decoded.currentBook;
+        if (decoded.currentChapter) state.currentChapter = decoded.currentChapter;
+        saveState();
+        loadEpisodeOrChapter();
+        renderSidebar();
+        updateProgressUI();
+        alert('성공적으로 통독 진도와 묵상 노트가 동기화되었습니다!');
+      } catch (e) {
+        alert('올바르지 않은 진도 코드입니다.');
+      }
+    }
+
+    function downloadAllMemosMarkdown() {
+      const keys = Object.keys(state.memos);
+      if (keys.length === 0) {
+        alert('아직 작성된 묵상 노트가 없습니다.');
+        return;
+      }
+      let md = `---\ntype: "bible-story-notes"\ncreated: "${new Date().toISOString().slice(0,10)}"\ntags:\n  - 성경통독\n  - 스토리성경\n  - 묵상\n---\n\n# 📖 스토리 성경통독 묵상 기록장\n\n`;
+      keys.forEach(k => {
+        const [abbr, ch] = k.split(':');
+        const bName = BOOK_MAP[abbr] ? BOOK_MAP[abbr].name : abbr;
+        md += `## ${bName} ${ch}장\n\n${state.memos[k]}\n\n---\n\n`;
+      });
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `스토리_성경통독_묵상노트_${new Date().toISOString().slice(0,10)}.md`;
+      a.click();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initApp();
+      if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+        navigator.serviceWorker.register('./story_bible_sw.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>

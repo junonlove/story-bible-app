@@ -1,0 +1,18 @@
+{
+  "name": "스토리 성경통독 · 개역개정 15막",
+  "short_name": "스토리성경",
+  "description": "개역개정4판 66권 구속사 15막 스토리북 & LPC 주석 연동 성경통독 앱",
+  "start_url": "./스토리_성경통독.html",
+  "display": "standalone",
+  "background_color": "#f8f4ec",
+  "theme_color": "#1e293b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%231e293b'/%3E%3Crect x='22' y='18' width='76' height='84' rx='8' fill='%23b45309'/%3E%3Crect x='28' y='22' width='64' height='76' rx='4' fill='%23fffdf9'/%3E%3Cpath d='M58 34h4v44h-4z' fill='%23b45309'/%3E%3Cpath d='M44 46h32v4H44z' fill='%23b45309'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

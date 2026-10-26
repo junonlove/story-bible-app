@@ -779,7 +779,6 @@
 
     /* 구절 하이라이트 클릭 */
     .v-text {
-      cursor: pointer;
       border-radius: 4px;
       transition: background 0.15s;
     }
@@ -793,6 +792,33 @@
       border-radius: 6px;
       padding: 2px 4px;
       transition: all 0.2s;
+    }
+    /* 성경 단어 클릭 (원어 & 용례 사전) 스타일 */
+    .w-token {
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 0 1px;
+      transition: background 0.12s, color 0.12s;
+    }
+    .w-token:hover, .w-token:active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .w-token.has-lex {
+      border-bottom: 1.5px dotted var(--accent);
+    }
+    .hl-btn {
+      display: inline-block;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.62em;
+      cursor: pointer;
+      opacity: 0.45;
+      margin-right: 4px;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .hl-btn:hover {
+      opacity: 1;
     }
 
     /* 묵상 메모장 */
@@ -1060,6 +1086,12 @@
           <div class="vault-badges" id="ui-vault-badges"></div>
         </div>
 
+        <!-- 성경 본문 단어 클릭 안내 배너 -->
+        <div style="font-size:12px; color:var(--text-muted); background:var(--bg-main); padding:7px 12px; border-radius:9px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <span>💡 <strong>본문의 아무 단어나 터치(클릭)</strong>하시면 <strong>히브리어·헬라어·영어 원어 뜻</strong>과 <strong>다른 성경 구절 용례</strong>가 열립니다!</span>
+          <span style="font-size:11px;">(점선 밑줄 단어: 심층 원어 해설 수록 · 🖍️: 형광펜)</span>
+        </div>
+
         <!-- 성경 구절 본문 -->
         <div class="bible-body mode-story" id="ui-bible-body"></div>
       </article>
@@ -1173,6 +1205,17 @@
           <button class="btn-icon" onclick="downloadAllMemosMarkdown()">📝 전체 묵상 마크다운(.md) 저장</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 원어(히브리어·헬라어·영어) 뜻 & 성경 전체 용례(Concordance) 모달 -->
+  <div class="modal-backdrop" id="modal-word-study" onclick="if(event.target===this)closeModal('modal-word-study')">
+    <div class="modal-box" style="max-width:680px;">
+      <div class="modal-header">
+        <h3 id="ws-modal-title">🔍 성경 원어 & 구절 용례 사전</h3>
+        <button class="btn-icon" onclick="closeModal('modal-word-study')">✕ 닫기</button>
+      </div>
+      <div id="ws-modal-body" style="font-size:14px; line-height:1.68;"></div>
     </div>
   </div>
 
@@ -1709,7 +1752,7 @@
           } else if (idx > 0 && idx % 5 === 0) {
             html += '</div><div class="story-paragraph">';
           }
-          html += `<span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}</span><span class="v-text ${hl}" id="v-el-${idx}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span> `;
+          html += `<span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}</span><span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span><span class="v-text ${hl}" id="v-el-${idx}">${renderInteractiveWords(v.t, bAbbr)}</span> `;
         });
         html += '</div>';
         bodyEl.innerHTML = html;
@@ -1724,8 +1767,8 @@
           }
           html += `
             <div class="verse-row" id="v-el-${idx}">
-              <span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}절</span>
-              <span class="v-text ${hl}" onclick="toggleHighlight('${vKey}', this)">${escapeHtml(v.t)}</span>
+              <span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}절 <span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="event.stopPropagation(); toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span></span>
+              <span class="v-text ${hl}" id="v-el-txt-${idx}">${renderInteractiveWords(v.t, bAbbr)}</span>
             </div>
           `;
         });
@@ -1734,6 +1777,19 @@
 
       // 메모 로드
       document.getElementById('ui-memo-input').value = state.memos[chKey] || '';
+    }
+
+    function toggleHighlightById(vKey, elId) {
+      const el = document.getElementById(elId);
+      const txtEl = document.getElementById(elId.replace('v-el-', 'v-el-txt-')) || el;
+      if (state.highlights[vKey]) {
+        delete state.highlights[vKey];
+        if (txtEl) txtEl.classList.remove('highlighted');
+      } else {
+        state.highlights[vKey] = true;
+        if (txtEl) txtEl.classList.add('highlighted');
+      }
+      saveState();
     }
 
     function toggleHighlight(vKey, el) {
@@ -2793,6 +2849,364 @@
 
       html += `</div>`;
       box.innerHTML = html;
+    }
+
+    // =========================================================================
+    // 성경 원어(히브리어·헬라어·영어) 뜻 & 성경 66권 전체 용례(Concordance) 사전 엔진
+    // =========================================================================
+    const BIBLICAL_LEXICON = [
+      {
+        keys: ['태초에', '태초', '처음'],
+        term: '태초에 (처음에)',
+        heb: 'בְּרֵאשִׁית (베레쉬트 · H7225)',
+        grk: 'Ἐν ἀρχῇ (엔 아르케 · G746)',
+        eng: 'In the beginning',
+        meaning: '단순한 시간의 첫 순간뿐 아니라 만물의 근원·머릿돌·시작점을 뜻합니다. 창세기 1:1(천지 창조의 태초)과 요한복음 1:1(말씀이신 그리스도의 영원한 태초)을 직접 연결하는 구속사의 첫 단어입니다.'
+      },
+      {
+        keys: ['하나님', '하나님이', '하나님은', '하나님의', '하나님을', '하나님께', '하나님께서'],
+        term: '하나님',
+        heb: 'אֱלֹהִים (엘로힘 · H430) / אֵל שַׁדַּי (엘 샤다이)',
+        grk: 'Θεός (테오스 · G2316)',
+        eng: 'God / The Almighty',
+        meaning: '구약의 엘로힘(אֱלֹהִים)은 전능하신 창조주의 위엄과 충만함을 나타내는 장엄 복수형 명사이며, 창조의 능력자이자 삼위일체 하나님의 신비를 암시합니다.'
+      },
+      {
+        keys: ['여호와', '여호와께서', '여호와의', '여호와를', '여호와께', '여호와는', '여호와여'],
+        term: '여호와 (야훼 · 주님)',
+        heb: 'יְהוָה (야훼/여호와 · H3068)',
+        grk: 'Κύριος (퀴리오스 · G2962)',
+        eng: 'The LORD (YHWH)',
+        meaning: '"나는 스스로 있는 자니라"(출 3:14)에서 유래한 하나님의 고유한 언약적 이름입니다. 엘로힘이 권능의 창조주라면, 여호와는 자기 백성과 언약을 맺으시고 끝까지 신실하게 구원하시는 인격적 하나님을 뜻합니다.'
+      },
+      {
+        keys: ['창조하시니라', '창조하시고', '창조하시되', '창조하신', '창조', '지으시니라', '지으신', '만드사', '만드시니'],
+        term: '창조하다 (지으시다)',
+        heb: 'בָּרָא (바라 · H1254) / עָשָׂה (아사 · H6213)',
+        grk: 'κτίζω (크티조 · G2936)',
+        eng: 'Create / Make',
+        meaning: '히브리어 바라(בָּרָא)는 오직 하나님만이 주어가 될 수 있는 동사로, 아무 재료도 없는 무(無)에서 완전히 새로운 질서와 생명을 만드시는 하나님의 주권적 사역을 가리킵니다(고후 5:17 새로운 피조물).'
+      },
+      {
+        keys: ['빛', '빛이', '빛을', '빛과', '광명', '광명체'],
+        term: '빛 (생명과 진리의 빛)',
+        heb: 'אוֹר (오르 · H216)',
+        grk: 'φῶς (포스 · G5457)',
+        eng: 'Light',
+        meaning: '어둠과 혼돈을 물리치는 하나님의 첫 말씀의 열매이자, 하나님의 임재·진리·구원을 상징합니다. 예수 그리스도는 "나는 세상의 빛이니"(요 8:12) 선언하시며 새 창조의 빛으로 오셨습니다.'
+      },
+      {
+        keys: ['영', '영은', '영이', '영을', '성령', '성령이', '성령으로', '성령의', '생기', '호흡'],
+        term: '영 · 성령 · 생기 (루아흐 / 프뉴마)',
+        heb: 'רוּחַ (루아흐 · H7307)',
+        grk: 'Πνεῦμα (프뉴마 · G4151)',
+        eng: 'Spirit / Breath / Wind',
+        meaning: '히브리어 루아흐와 헬라어 프뉴마는 바람, 호흡(숨), 생명의 영을 동시에 뜻합니다. 창세기 1:2 수면 위에 운행하시던 하나님의 영이 에스겔 37장 마른 뼈를 살리는 생기로, 사도행전 2장 오순절 성령의 바람으로 역사하십니다.'
+      },
+      {
+        keys: ['형상', '형상을', '형상대로', '모양', '모양대로'],
+        term: '형상과 모양 (하나님의 형상)',
+        heb: 'צֶלֶם (첼렘 · H6754) / דְּמוּת (데무트 · H1823)',
+        grk: 'εἰκών (에이콘 · G1504)',
+        eng: 'Image / Likeness',
+        meaning: '고대 근동에서 왕이 자기 통치 영역에 세우던 대리 통치자의 조각상을 뜻했습니다. 모든 인간은 신분과 상관없이 하나님의 성품과 통치를 대리하는 존귀한 "하나님의 형상"이며, 보이지 아니하시는 하나님의 참 형상은 예수 그리스도(골 1:15)이십니다.'
+      },
+      {
+        keys: ['복', '복을', '복이', '복된', '축복'],
+        term: '복 (바라크 / 마카리오스)',
+        heb: 'בְּרָכָה (베라카 · H1293) / אַשְׁרֵי (아쉬레이 · H835)',
+        grk: 'εὐλογία (율로기아 · G2129) / μακάριος (마카리오스 · G3107)',
+        eng: 'Blessing / Blessed',
+        meaning: '성경에서 복은 단순한 물질적 행운이 아니라, 생명의 근원이신 하나님과 올바른 관계에 거할 때 흘러넘치는 생명력과 형통함입니다. 아브라함에게 약속된 복은 그리스도 안에서 모든 민족에게 흘러갑니다(갈 3:14).'
+      },
+      {
+        keys: ['안식', '안식일', '안식일을', '안식일에', '쉬시니라', '쉼'],
+        term: '안식 (샤바트 · 쉼)',
+        heb: 'שַׁבָּת (샤바트 · H7676)',
+        grk: 'σάββατον (삽바톤 · G4521) / κατάπαυσις (카타파우시스 · G2663)',
+        eng: 'Sabbath / Rest',
+        meaning: '멈추다, 완성하고 기뻐하며 쉬다는 뜻입니다. 내가 일해서 내 인생을 증명하려는 수고를 멈추고, 하나님의 창조와 구원 사역의 완성을 신뢰하며 누리는 평안입니다(마 11:28 "내가 너희를 쉬게 하리라").'
+      },
+      {
+        keys: ['언약', '언약을', '언약의', '약속', '약속하신', '맹세'],
+        term: '언약 (베리트 / 디아테케)',
+        heb: 'בְּרִית (베리트 · H1285)',
+        grk: 'διαθήκη (디아테케 · G1242)',
+        eng: 'Covenant / Testament',
+        meaning: '피로써 세우는 생명의 약속입니다. 히브리어에서는 "언약을 자르다(카라트 베리트)"라고 표현하는데, 짐승을 쪼개어 피를 흘림으로 목숨을 걸고 지키는 하나님의 신실하신 구원 약속(구약~신약)을 뜻합니다.'
+      },
+      {
+        keys: ['죄', '죄를', '죄가', '죄악', '죄악이', '죄인', '죄인들', '허물'],
+        term: '죄 · 허물 (하타트 / 하마르티아)',
+        heb: 'חַטָּאת (하타트 · H2403) / עָוֹן (아온 · H5771)',
+        grk: 'ἁμαρτία (하마르티아 · G266)',
+        eng: 'Sin / Iniquity / Transgression',
+        meaning: '화살이 과녁(하나님의 뜻과 영광)에서 빗나가다라는 원어적 의미를 가집니다. 단순한 도덕적 실수 이전에 창조주 하나님을 떠나 자기 자신이 주인이 되려는 근본적인 반역이며, 오직 그리스도의 보혈로만 사함받습니다.'
+      },
+      {
+        keys: ['은혜', '은혜를', '은혜가', '은혜로', '인자', '인자하심', '인자하심이', '긍휼', '자비'],
+        term: '은혜 · 인자하심 (헤세드 / 카리스)',
+        heb: 'חֵן (헨 · H2580) / חֶסֶד (헤세드 · H2617)',
+        grk: 'χάρις (카리스 · G5485) / ἔλεος (엘레오스 · G1656)',
+        eng: 'Grace / Steadfast Love (Hesed) / Mercy',
+        meaning: '구약의 헤세드(חֶסֶד)는 언약에 기초하여 끝까지 포기하지 않으시는 하나님의 끈질긴 사랑과 인자하심이며, 신약의 카리스(χάρις)는 자격 없는 죄인에게 값없이 거저 주시는 구원의 선물입니다.'
+      },
+      {
+        keys: ['믿음', '믿음으로', '믿음이', '믿음을', '믿고', '믿는', '믿으니', '신뢰'],
+        term: '믿음 (아만 / 피스티스)',
+        heb: 'אֱמוּנָה (에무나 · H530) / אָמַן (아만 · H539)',
+        grk: 'πίστις (피스티스 · G4102)',
+        eng: 'Faith / Trust / Belief',
+        meaning: '히브리어 어근 아만(아멘의 어원)은 든든한 반석에 몸을 기대어 확고히 서다는 뜻입니다. 내 감정이나 공로가 아니라 신실하신 하나님의 약속과 예수 그리스도의 십자가 사역에 내 존재 전체를 의탁하는 것입니다.'
+      },
+      {
+        keys: ['의', '의를', '의가', '의롭다', '의인', '의인의', '공의', '정의'],
+        term: '의 · 공의 (체다카 / 디카이오쉬네)',
+        heb: 'צְדָקָה (체다카 · H6666) / מִשְׁפָּט (미쉬파트 · H4941)',
+        grk: 'δικαιοσύνη (디카이오쉬네 · G1343)',
+        eng: 'Righteousness / Justice',
+        meaning: '하나님의 언약 기준에 온전히 부합하는 올바른 관계와 상태를 뜻합니다. 인간은 스스로 의에 이를 수 없으나, 하나님은 그리스도를 믿는 자에게 그리스도의 의를 값없이 전가하사 의롭다 칭하십니다(칭의, 롬 3:21-22).'
+      },
+      {
+        keys: ['구원', '구원을', '구원하시리라', '구원하소서', '구원자', '구속', '대속'],
+        term: '구원 · 구속 (예슈아 / 소테리아)',
+        heb: 'יְשׁוּעָה (예슈아 · H3444) / גָּאַל (가알 · H1350)',
+        grk: 'σωτηρία (소테리아 · G4991) / ἀπολύτρωσις (아폴뤼트로시스 · G629)',
+        eng: 'Salvation / Redemption',
+        meaning: '좁고 답답한 결박에서 건져내어 넓고 안전한 곳으로 옮기다, 몸값을 지불하고 노예를 해방하다(구속)라는 뜻입니다. 히브리어 구원(예슈아)에서 바로 "예수(자기 백성을 죄에서 구원할 자)"라는 이름이 왔습니다.'
+      },
+      {
+        keys: ['거룩', '거룩한', '거룩하게', '거룩하니', '성결', '성소'],
+        term: '거룩 (카도쉬 / 하기오스)',
+        heb: 'קָדוֹשׁ (카도쉬 · H6918)',
+        grk: 'ἅγιος (하기오스 · G40)',
+        eng: 'Holy / Sanctified',
+        meaning: '잘라내어 구별하다라는 어원을 가집니다. 피조물과 구별되시는 하나님의 절대적 순결함과 초월적 영광을 뜻하며, 성도는 세상의 가치관에서 구별되어 하나님의 소유로 부름 받은 거룩한 백성(성도, 하기오스)입니다.'
+      },
+      {
+        keys: ['피', '피를', '피가', '피로', '보혈'],
+        term: '피 · 보혈 (담 / 하이마)',
+        heb: 'דָּם (담 · H1818)',
+        grk: 'αἷμα (하이마 · G129)',
+        eng: 'Blood',
+        meaning: '"육체의 생명은 피에 있음이라 내가 이 피를 너희에게 주어 제단에 뿌려 너희의 생명을 위하여 속죄하게 하였나니"(레 17:11). 유월절 문설주의 피와 성막 제사의 피는 모두 십자가에서 흘리신 그리스도의 보혈을 예표합니다.'
+      },
+      {
+        keys: ['어린양', '양', '숫양', '번제', '제사', '속죄', '화목제'],
+        term: '어린양 · 번제와 속죄 제사',
+        heb: 'שֶׂה (세 · H7716) / עֹלָה (올라 · 번제) / כָּפַר (카파르 · 속죄하다)',
+        grk: 'ἀμνός (암노스 · G286) / ἀρνίον (아르니온 · G721)',
+        eng: 'Lamb / Sacrifice / Atonement',
+        meaning: '죄인의 죄를 대신 전가받아 피 흘려 죽음으로 하나님의 진노를 덮는(카파르) 대속 제물입니다. 세례 요한은 예수님을 향해 "보라 세상 죄를 지고 가는 하나님의 어린양이로다"(요 1:29) 선포했습니다.'
+      },
+      {
+        keys: ['말씀', '말씀이', '말씀을', '말씀하시되', '말씀하신', '율법', '율법을', '계명'],
+        term: '말씀 · 율법 (다바르 · 토라 / 로고스)',
+        heb: 'דָּבָר (다바르 · H1697) / תּוֹרָה (토라 · H8451)',
+        grk: 'Λόγος (로고스 · G3056) / ῥῆμα (레마 · G4487)',
+        eng: 'Word (Logos) / Law (Torah)',
+        meaning: '히브리어 토라(율법)는 원래 "과녁을 향해 손가락으로 길을 가리켜 가르치다"라는 사랑의 이정표이며, 신약의 로고스(말씀)는 태초부터 하나님과 함께 계시다가 육신이 되어 오신 예수 그리스도(요 1:1, 14)이십니다.'
+      },
+      {
+        keys: ['사랑', '사랑은', '사랑이', '사랑을', '사랑하라', '사랑하시니라', '사랑하는'],
+        term: '사랑 (아하바 · 헤세드 / 아가페)',
+        heb: 'אַהֲבָה (아하바 · H160) / חֶסֶד (헤세드 · H2617)',
+        grk: 'ἀγάπη (아가페 · G26)',
+        eng: 'Love (Agape)',
+        meaning: '조건이나 상대방의 가치 때문이 아니라, 주는 이의 성품과 의지로 자기를 내어주는 무조건적·희생적 사랑입니다. "우리가 아직 죄인 되었을 때에 그리스도께서 우리를 위하여 죽으심으로 하나님께서 자기에 대한 사랑을 확증하셨느니라"(롬 5:8).'
+      },
+      {
+        keys: ['평강', '평강이', '평안', '평안히', '화평', '샬롬'],
+        term: '평강 · 화평 (샬롬 / 에이레네)',
+        heb: 'שָׁלוֹם (샬롬 · H7965)',
+        grk: 'εἰρήνη (에이레네 · G1515)',
+        eng: 'Peace (Shalom)',
+        meaning: '단순히 전쟁이나 갈등이 없는 상태를 넘어, 하나님과의 관계가 회복되어 모든 것이 제자리를 찾은 온전한 충만과 조화의 상태를 뜻합니다. 그리스도는 우리의 화평(엡 2:14)이십니다.'
+      },
+      {
+        keys: ['회개', '회개하라', '회개하고', '돌이켜', '돌아오라'],
+        term: '회개 · 돌이키다 (슈브 / 메타노이아)',
+        heb: 'שׁוּב (슈브 · H7725)',
+        grk: 'μετάνοια (메타노이아 · G3341)',
+        eng: 'Repentance / Return',
+        meaning: '구약의 슈브(שׁוּב)는 가던 잘못된 길에서 발걸음을 180도 돌려 하나님께로 돌아오는 것이며, 신약의 메타노이아(μετάνοια)는 마음과 생각과 삶의 방향을 근본적으로 바꾸는 은혜의 전환입니다.'
+      },
+      {
+        keys: ['지혜', '지혜를', '지혜가', '지혜로운', '명철', '경외'],
+        term: '지혜 · 경외 (호크마 / 소피아)',
+        heb: 'חָכְמָה (호크마 · H2451) / יִרְאַת (이르아트 · 경외)',
+        grk: 'σοφία (소피아 · G4678)',
+        eng: 'Wisdom / Fear of the Lord',
+        meaning: '성경적 지혜는 머리의 지식이 아니라, 창조주 하나님을 경외함으로 하나님의 질서에 맞추어 인생을 살아가는 거룩한 숙련 기술입니다. 고린도전서 1:24은 그리스도가 곧 하나님의 능력이며 하나님의 지혜라고 증언합니다.'
+      },
+      {
+        keys: ['생명', '생명을', '생명이', '생명의', '영생', '영생을', '살리라'],
+        term: '생명 · 영생 (하임 / 조에)',
+        heb: 'חַיִּים (하임 · H2416) / נֶפֶשׁ (네페쉬 · H5315)',
+        grk: 'ζωή (조에 · G2222)',
+        eng: 'Life / Eternal Life',
+        meaning: '신약 헬라어는 육체적 목숨(프쉬케/비오스)과 하나님께로부터 오는 영원한 생명(조에, ζωή)을 구분합니다. 영생은 죽은 뒤에야 시작되는 긴 시간이 아니라, 지금 유일하신 참 하나님과 예수 그리스도를 아는 참된 생명의 사귐(요 17:3)입니다.'
+      },
+      {
+        keys: ['십자가', '십자가에', '십자가를', '십자가의', '부활', '살아나시다', '다시'],
+        term: '십자가와 부활 (스타우로스 / 아나스타시스)',
+        heb: 'עֵץ (에츠 · 나무/형틀)',
+        grk: 'σταυρός (스타우로스 · G4716) / ἀνάστασις (아나스타시스 · G386)',
+        eng: 'Cross / Resurrection',
+        meaning: '로마 제국의 가장 참혹한 저주와 수치의 사형 형틀이었던 십자가(스타우로스)가, 예수 그리스도의 대속의 죽으심과 부활(아나스타시스·다시 일어섬)을 통해 구원하시는 하나님의 능력과 영광의 보좌로 역전되었습니다(고전 1:18).'
+      },
+      {
+        keys: ['교회', '교회를', '교회가', '교회의', '성도', '성도들', '제자', '증인'],
+        term: '교회 · 제자 · 증인 (에클레시아 / 마르튀스)',
+        heb: 'קָהָל (카할 · 총회/회중 · H6951)',
+        grk: 'ἐκκλησία (에클레시아 · G1577) / μάρτυς (마르튀스 · 증인/순교자)',
+        eng: 'Church (Ekklesia) / Witness',
+        meaning: '에클레시아(ἐκκλησία)는 건물이 아니라 세상에서 "부르심을 받아 나온 사람들의 모임"이자 그리스도의 몸입니다. 교회는 성령의 권능을 받아 땅끝까지 부활의 주님을 삶과 생명으로 증언하는 증인(마르튀스) 공동체입니다.'
+      }
+    ];
+
+    const LEX_LOOKUP = {};
+    BIBLICAL_LEXICON.forEach(entry => {
+      entry.keys.forEach(k => {
+        LEX_LOOKUP[k] = entry;
+      });
+    });
+
+    function stripKoreanJosa(word) {
+      const clean = word.replace(/[^가-힣]/g, '');
+      if (clean.length <= 2) return clean;
+      const josaList = ['께서도', '에서는', '에게서', '으로만', '이라도', '하시니라', '하였더라', '하시며', '하시고', '께서', '에서', '에게', '으로', '라고', '이나', '처럼', '까지', '부터', '보다', '마다', '조차', '은', '는', '이', '가', '을', '를', '의', '에', '로', '와', '과', '도', '만', '며', '고'];
+      for (const j of josaList) {
+        if (clean.endsWith(j) && clean.length - j.length >= 2) {
+          return clean.slice(0, clean.length - j.length);
+        }
+      }
+      return clean;
+    }
+
+    function findLexiconEntry(rawToken) {
+      const clean = rawToken.replace(/[^가-힣]/g, '');
+      if (!clean) return null;
+      if (LEX_LOOKUP[clean]) return LEX_LOOKUP[clean];
+      const stem = stripKoreanJosa(clean);
+      if (LEX_LOOKUP[stem]) return LEX_LOOKUP[stem];
+      for (const entry of BIBLICAL_LEXICON) {
+        for (const k of entry.keys) {
+          if (k.length >= 2 && (clean.startsWith(k) || stem === k)) {
+            return entry;
+          }
+        }
+      }
+      return null;
+    }
+
+    function renderInteractiveWords(text, bookAbbr) {
+      if (!text) return '';
+      const tokens = text.split(/(\s+)/);
+      return tokens.map(tok => {
+        if (/^\s+$/.test(tok)) return tok;
+        const lex = findLexiconEntry(tok);
+        const cls = lex ? 'w-token has-lex' : 'w-token';
+        const safeTok = escapeHtml(tok);
+        return `<span class="${cls}" onclick="openWordStudyModal('${safeTok.replace(/'/g, "\\'")}', '${bookAbbr}')">${safeTok}</span>`;
+      }).join('');
+    }
+
+    function openWordStudyModal(clickedWord, currentBookAbbr) {
+      const cleanWord = clickedWord.replace(/[^가-힣]/g, '');
+      if (!cleanWord) return;
+      const lex = findLexiconEntry(cleanWord);
+      const stem = lex ? lex.keys[0].replace(/(하시니라|하였더라)$/, '') : stripKoreanJosa(cleanWord);
+      const searchTerm = stem.length >= 2 ? stem : cleanWord;
+
+      // 성경 66권 전체에서 구약/신약 용례 검색
+      let totalCount = 0;
+      const otMatches = [];
+      const ntMatches = [];
+
+      for (const b of window.BIBLE_STORY_DATA.books) {
+        const chMap = window.BIBLE_STORY_DATA.bible[b.abbr] || {};
+        for (const [cStr, verses] of Object.entries(chMap)) {
+          for (const v of verses) {
+            if (v.t && v.t.includes(searchTerm)) {
+              totalCount++;
+              const item = { abbr: b.abbr, name: b.name, c: Number(cStr), v: v.v, t: v.t, h: v.h };
+              if (b.testament === '구약' && otMatches.length < 12) {
+                otMatches.push(item);
+              } else if (b.testament === '신약' && ntMatches.length < 12) {
+                ntMatches.push(item);
+              }
+            }
+          }
+        }
+      }
+
+      document.getElementById('ws-modal-title').textContent = `🔍 성경 단어 연구: "${cleanWord}"`;
+      const bodyEl = document.getElementById('ws-modal-body');
+
+      let lexHtml = '';
+      if (lex) {
+        lexHtml = `
+          <div style="background:var(--bg-main); border:1px solid var(--border-color); border-left:4px solid var(--accent); border-radius:12px; padding:14px; margin-bottom:16px;">
+            <div style="font-size:16px; font-weight:800; color:var(--accent); margin-bottom:8px;">📖 ${escapeHtml(lex.term)}</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-bottom:10px;">
+              <div style="background:var(--bg-card); padding:8px 10px; border-radius:8px; border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); font-weight:700;">구약 히브리어 원어</div>
+                <div style="font-size:14px; font-weight:800; margin-top:2px;">${escapeHtml(lex.heb)}</div>
+              </div>
+              <div style="background:var(--bg-card); padding:8px 10px; border-radius:8px; border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); font-weight:700;">신약 헬라어 원어</div>
+                <div style="font-size:14px; font-weight:800; margin-top:2px;">${escapeHtml(lex.grk)}</div>
+              </div>
+              <div style="background:var(--bg-card); padding:8px 10px; border-radius:8px; border:1px solid var(--border-color);">
+                <div style="font-size:11px; color:var(--text-muted); font-weight:700;">영어 성경 (ESV / NIV)</div>
+                <div style="font-size:14px; font-weight:800; color:#0284c7; margin-top:2px;">${escapeHtml(lex.eng)}</div>
+              </div>
+            </div>
+            <div style="font-size:13.8px; color:var(--text-primary); line-height:1.68;">
+              <strong>💡 원어 신학 & 구속사적 의미:</strong><br>${escapeHtml(lex.meaning)}
+            </div>
+          </div>
+        `;
+      } else {
+        lexHtml = `
+          <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:13.5px;">
+            <strong>🔎 어근 추출 분석:</strong> <code>${escapeHtml(clickedWord)}</code> → 핵심 어근 <strong>"${escapeHtml(searchTerm)}"</strong> 중심으로 성경 66권 전체 용례를 비교합니다.
+          </div>
+        `;
+      }
+
+      const renderMatchList = (list) => list.map(m => `
+        <div style="padding:9px 10px; border-bottom:1px solid var(--border-color); cursor:pointer; border-radius:8px;" onclick="closeModal('modal-word-study'); selectBookDirect('${m.abbr}', ${m.c})">
+          <div style="font-weight:800; font-size:12.5px; color:var(--accent);">${m.name} ${m.c}:${m.v} ${m.h ? `<span style="color:var(--text-muted); font-weight:600;">· ${escapeHtml(m.h)}</span>` : ''}</div>
+          <div style="font-size:13.3px; margin-top:2px;">${escapeHtml(m.t).replaceAll(escapeHtml(searchTerm), `<mark style="background:rgba(245,158,11,0.38); font-weight:700; color:inherit;">${escapeHtml(searchTerm)}</mark>`)}</div>
+        </div>
+      `).join('');
+
+      bodyEl.innerHTML = `
+        ${lexHtml}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+          <span style="font-weight:800; font-size:14px; color:var(--text-primary);">📚 이 단어가 다른 성경 구절에서는 어떻게 쓰였나요?</span>
+          <span style="font-size:12px; font-weight:700; background:var(--accent-soft); color:var(--accent); padding:3px 9px; border-radius:99px;">성경 전체 총 ${totalCount.toLocaleString()}절 등장</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">구절을 터치하시면 해당 성경 장으로 바로 이동합니다.</div>
+
+        ${otMatches.length > 0 ? `
+          <div style="font-weight:800; font-size:13px; color:#d97706; margin:10px 0 6px;">📜 구약 성경 대표 용례 (${otMatches.length}선)</div>
+          <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:10px; max-height:220px; overflow-y:auto; margin-bottom:12px;">
+            ${renderMatchList(otMatches)}
+          </div>
+        ` : ''}
+
+        ${ntMatches.length > 0 ? `
+          <div style="font-weight:800; font-size:13px; color:#0284c7; margin:10px 0 6px;">✝️ 신약 성경 대표 용례 (${ntMatches.length}선)</div>
+          <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:10px; max-height:220px; overflow-y:auto;">
+            ${renderMatchList(ntMatches)}
+          </div>
+        ` : ''}
+      `;
+
+      openModal('modal-word-study');
     }
 
     window.addEventListener('DOMContentLoaded', () => {

@@ -1017,7 +1017,8 @@
         <h3>
           <span>✍️ 이 본문 한 줄 묵상 & 깨달음 기록</span>
           <div style="display:flex; gap:6px;">
-            <button class="btn-icon" style="padding:4px 9px; font-size:12px;" onclick="copyMemoForObsidian()">📋 옵시디언용 복사</button>
+            <button class="btn-icon" style="padding:4px 9px; font-size:12px;" onclick="shareMyProgress()">💌 묵상 카톡 공유</button>
+            <button class="btn-icon pc-obsidian-only" id="btn-obs-copy" style="padding:4px 9px; font-size:12px; display:none;" onclick="copyMemoForObsidian()">📋 옵시디언용 복사</button>
           </div>
         </h3>
         <textarea class="memo-textarea" id="ui-memo-input" placeholder="오늘 스토리를 읽으며 마음에 와닿은 구절이나 하나님의 마음을 적어보세요. (자동 저장됩니다)" oninput="saveCurrentMemo()"></textarea>
@@ -1536,6 +1537,12 @@
       window.scrollTo({ top: Math.max(0, paperTop), behavior: 'smooth' });
     }
 
+    function isDesktopObsidianAvailable() {
+      const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '') || window.innerWidth <= 960;
+      const isRemoteWeb = location.hostname.includes('github.io') || location.hostname.includes('netlify') || location.hostname.includes('vercel');
+      return !isMobileDevice && !isRemoteWeb;
+    }
+
     function renderScriptureBody() {
       const bAbbr = state.currentBook;
       const chNum = state.currentChapter;
@@ -1553,24 +1560,34 @@
       botBtn.textContent = isDone ? '✅ 읽음 완료! (다음 장으로 이동 →)' : '✅ 이 장 읽음 완료 & 다음 장으로 →';
       botBtn.classList.toggle('completed', isDone);
 
-      // 볼트 내 LPC 주석 & 설교 연동 표시
-      const lpcList = (window.BIBLE_STORY_DATA.lpc_map && window.BIBLE_STORY_DATA.lpc_map[chKey]) || [];
-      const sermonList = (window.BIBLE_STORY_DATA.sermon_map && window.BIBLE_STORY_DATA.sermon_map[chKey]) || [];
+      // 볼트 내 LPC 주석 & 설교 연동 표시 (오직 컴퓨터 로컬 환경에서만 표시, 스마트폰/웹에서는 숨김)
       const vaultBox = document.getElementById('ui-vault-links');
       const vaultBadges = document.getElementById('ui-vault-badges');
+      const obsCopyBtn = document.getElementById('btn-obs-copy');
+      const canUseObsidian = isDesktopObsidianAvailable();
 
-      if (lpcList.length > 0 || sermonList.length > 0) {
-        vaultBox.style.display = 'block';
-        let badgesHtml = '';
-        lpcList.forEach(item => {
-          const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
-          badgesHtml += `<a class="vault-link-chip lpc" href="${obsUrl}" title="옵시디언에서 LPC 주석 열기">📘 [LPC 주석] ${escapeHtml(item.title)}</a>`;
-        });
-        sermonList.forEach(item => {
-          const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
-          badgesHtml += `<a class="vault-link-chip sermon" href="${obsUrl}" title="옵시디언에서 설교 노트 열기">🎙️ [설교] ${escapeHtml(item.title)}</a>`;
-        });
-        vaultBadges.innerHTML = badgesHtml;
+      if (obsCopyBtn) {
+        obsCopyBtn.style.display = canUseObsidian ? 'inline-flex' : 'none';
+      }
+
+      if (canUseObsidian) {
+        const lpcList = (window.BIBLE_STORY_DATA.lpc_map && window.BIBLE_STORY_DATA.lpc_map[chKey]) || [];
+        const sermonList = (window.BIBLE_STORY_DATA.sermon_map && window.BIBLE_STORY_DATA.sermon_map[chKey]) || [];
+        if (lpcList.length > 0 || sermonList.length > 0) {
+          vaultBox.style.display = 'block';
+          let badgesHtml = '';
+          lpcList.forEach(item => {
+            const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
+            badgesHtml += `<a class="vault-link-chip lpc" href="${obsUrl}" title="옵시디언에서 LPC 주석 열기">📘 [LPC 주석] ${escapeHtml(item.title)}</a>`;
+          });
+          sermonList.forEach(item => {
+            const obsUrl = `obsidian://open?vault=${encodeURIComponent(VAULT_NAME)}&file=${encodeURIComponent(item.path)}`;
+            badgesHtml += `<a class="vault-link-chip sermon" href="${obsUrl}" title="옵시디언에서 설교 노트 열기">🎙️ [설교] ${escapeHtml(item.title)}</a>`;
+          });
+          vaultBadges.innerHTML = badgesHtml;
+        } else {
+          vaultBox.style.display = 'none';
+        }
       } else {
         vaultBox.style.display = 'none';
       }

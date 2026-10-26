@@ -821,6 +821,105 @@
       opacity: 1;
     }
 
+    /* 절별 메모 버튼 & 인라인 설교 씨앗 메모 박스 */
+    .vm-btn {
+      display: inline-block;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.62em;
+      cursor: pointer;
+      opacity: 0.5;
+      margin-right: 4px;
+      user-select: none;
+      vertical-align: middle;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .vm-btn:hover, .vm-btn.has-memo {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    .verse-memo-inline {
+      font-family: 'Pretendard', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.58;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 9px 12px;
+      margin: 6px 0 12px 0;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .verse-memo-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    /* 성경 66권 개론(Book Introduction) 카드 */
+    .book-intro-card {
+      background: var(--bg-main);
+      border: 1.5px solid var(--border-color);
+      border-top: 4px solid var(--accent);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 20px;
+    }
+    .book-intro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      gap: 8px;
+    }
+    .book-intro-title {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .book-intro-body {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border-color);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text-primary);
+    }
+    .book-intro-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .book-intro-meta-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 9px 12px;
+    }
+    .book-intro-meta-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .book-intro-meta-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
     /* 묵상 메모장 */
     .memo-card {
       background: var(--bg-card);
@@ -959,6 +1058,7 @@
     <div class="header-actions">
       <button class="btn-icon active" id="btn-mode-toggle" onclick="toggleReadingMode()" title="소설책 문단 모드 / 절별 모드 전환">📚 <span class="hide-mobile">스토리북 뷰</span></button>
       <button class="btn-icon" id="btn-vnum-toggle" onclick="toggleVerseNumbers()" title="절 번호 숨기기/보이기">🔢 <span class="hide-mobile">절번호</span></button>
+      <button class="btn-icon" onclick="openSermonArchiveModal()" title="절별 메모 & 설교 자료 보관함">🗂️ <span class="hide-mobile">설교·메모함</span></button>
       <button class="btn-icon" onclick="openModal('modal-search')" title="성경 본문 검색">🔍 <span class="hide-mobile">검색</span></button>
       <button class="btn-icon" onclick="openMobileConnectModal()" title="스마트폰에서 열기 & QR코드">📱 <span class="hide-mobile">폰 연결</span></button>
       <button class="btn-icon" onclick="openModal('modal-settings')" title="글자 크기·테마·동기화 설정">⚙️</button>
@@ -1073,9 +1173,19 @@
 
       <!-- 성경 본문 용지 -->
       <article class="scripture-paper">
+        <!-- 성경 각 권 시작 시 개론(저자·기록연대·주제·구조·그리스도·배경) 카드 -->
+        <div class="book-intro-card" id="ui-book-intro-card" style="display:none;">
+          <div class="book-intro-header" onclick="toggleBookIntroCard()">
+            <div class="book-intro-title" id="ui-book-intro-title">📘 창세기 (Genesis) 성경 개론 & 핵심 길잡이</div>
+            <span class="btn-icon" id="ui-book-intro-toggle-btn" style="padding:4px 10px; font-size:12px;">▲ 개론 접기</span>
+          </div>
+          <div class="book-intro-body" id="ui-book-intro-body"></div>
+        </div>
+
         <div class="chapter-title-banner">
           <h2 id="ui-chapter-heading">창세기 1장</h2>
-          <div style="display:flex; gap:8px; align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button class="btn-icon" onclick="openSermonArchiveModal()" title="작성한 모든 절별 메모와 설교 자료 모아보기">🗂️ 설교·메모 보관함</button>
             <button class="btn-icon" id="btn-ch-check" onclick="toggleCurrentChapterDone()">✓ 이 장 읽음 체크</button>
           </div>
         </div>
@@ -1086,10 +1196,10 @@
           <div class="vault-badges" id="ui-vault-badges"></div>
         </div>
 
-        <!-- 성경 본문 단어 클릭 안내 배너 -->
-        <div style="font-size:12px; color:var(--text-muted); background:var(--bg-main); padding:7px 12px; border-radius:9px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-          <span>💡 <strong>본문의 아무 단어나 터치(클릭)</strong>하시면 <strong>히브리어·헬라어·영어 원어 뜻</strong>과 <strong>다른 성경 구절 용례</strong>가 열립니다!</span>
-          <span style="font-size:11px;">(점선 밑줄 단어: 심층 원어 해설 수록 · 🖍️: 형광펜)</span>
+        <!-- 성경 본문 단어 클릭 & 절별 메모 안내 배너 -->
+        <div style="font-size:12px; color:var(--text-muted); background:var(--bg-main); padding:8px 12px; border-radius:9px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+          <span>💡 <strong>본문의 아무 단어나 터치</strong>하면 <strong>히브리어·헬라어·영어 원어 뜻 & 용례</strong>가 열리고, 절 옆의 <strong>📝 버튼</strong>을 누르면 <strong>절별 설교·묵상 메모</strong>를 남길 수 있습니다!</span>
+          <span style="font-size:11px;">(🖍️: 형광펜 · 📝: 절별 메모/설교씨앗)</span>
         </div>
 
         <!-- 성경 구절 본문 -->
@@ -1099,13 +1209,14 @@
       <!-- 나의 스토리 묵상 노트 -->
       <section class="memo-card">
         <h3>
-          <span>✍️ 이 본문 한 줄 묵상 & 깨달음 기록</span>
-          <div style="display:flex; gap:6px;">
+          <span>✍️ 이 장(Chapter) 전체 묵상 & 설교 노트</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn-icon" style="padding:4px 9px; font-size:12px;" onclick="openSermonArchiveModal()">🗂️ 전체 설교·절별메모 모아보기</button>
             <button class="btn-icon" style="padding:4px 9px; font-size:12px;" onclick="shareMyProgress()">💌 묵상 카톡 공유</button>
             <button class="btn-icon pc-obsidian-only" id="btn-obs-copy" style="padding:4px 9px; font-size:12px; display:none;" onclick="copyMemoForObsidian()">📋 옵시디언용 복사</button>
           </div>
         </h3>
-        <textarea class="memo-textarea" id="ui-memo-input" placeholder="오늘 스토리를 읽으며 마음에 와닿은 구절이나 하나님의 마음을 적어보세요. (자동 저장됩니다)" oninput="saveCurrentMemo()"></textarea>
+        <textarea class="memo-textarea" id="ui-memo-input" placeholder="오늘 스토리를 읽으며 마음에 와닿은 구절이나 설교 아이디어를 적어보세요. 각 절마다 메모하시려면 본문 절 번호 옆의 📝 아이콘을 눌러보세요! (자동 저장)" oninput="saveCurrentMemo()"></textarea>
       </section>
 
       <!-- 하단 장/에피소드 이동 바 -->
@@ -1134,6 +1245,10 @@
     <button class="mob-tab-btn" onclick="openModal('modal-search')">
       <span class="mob-tab-icon">🔍</span>
       <span class="mob-tab-label">말씀검색</span>
+    </button>
+    <button class="mob-tab-btn" onclick="openSermonArchiveModal()">
+      <span class="mob-tab-icon">🗂️</span>
+      <span class="mob-tab-label">설교·메모함</span>
     </button>
     <button class="mob-tab-btn" onclick="openModal('modal-settings')">
       <span class="mob-tab-icon">⚙️</span>
@@ -1273,6 +1388,58 @@
     </div>
   </div>
 
+  <!-- 절별 메모 & 설교 씨앗 작성 모달 -->
+  <div class="modal-backdrop" id="modal-verse-memo" onclick="if(event.target===this)closeModal('modal-verse-memo')">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-header">
+        <h3 id="vm-modal-title">📝 절별 묵상 & 설교 씨앗 메모</h3>
+        <button class="btn-icon" onclick="closeModal('modal-verse-memo')">✕ 닫기</button>
+      </div>
+      <div id="vm-verse-preview" style="background:var(--bg-main); border-left:4px solid var(--accent); padding:10px 14px; border-radius:10px; font-family:var(--reader-font); font-size:15px; line-height:1.6; margin-bottom:14px;"></div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12.5px; font-weight:800; color:var(--text-secondary); margin-bottom:6px;">🏷️ 메모 분류 (설교 자료 정리용 태그 선택)</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;" id="vm-tag-buttons">
+          <button type="button" class="btn-icon active" onclick="selectVerseMemoTag('설교씨앗')" data-tag="설교씨앗">🌱 #설교씨앗</button>
+          <button type="button" class="btn-icon" onclick="selectVerseMemoTag('주해/원어')" data-tag="주해/원어">🔍 #주해/원어</button>
+          <button type="button" class="btn-icon" onclick="selectVerseMemoTag('예화/적용')" data-tag="예화/적용">💡 #예화/적용</button>
+          <button type="button" class="btn-icon" onclick="selectVerseMemoTag('기도/묵상')" data-tag="기도/묵상">🙏 #기도/묵상</button>
+        </div>
+      </div>
+      <textarea id="vm-textarea" class="memo-textarea" style="min-height:120px; margin-bottom:12px;" placeholder="이 구절에서 떠오른 설교 포인트, 원어적 통찰, 성도들을 향한 적용이나 기도를 자유롭게 기록해 두세요."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <button class="btn-icon" style="color:#dc2626;" onclick="deleteCurrentVerseMemo()">🗑️ 삭제</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-icon" onclick="closeModal('modal-verse-memo')">취소</button>
+          <button class="btn-icon active" onclick="saveCurrentVerseMemo()">💾 절 메모 저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 설교 자료 & 절별 메모 전체 보관함 모달 -->
+  <div class="modal-backdrop" id="modal-sermon-archive" onclick="if(event.target===this)closeModal('modal-sermon-archive')">
+    <div class="modal-box" style="max-width:740px;">
+      <div class="modal-header">
+        <h3>🗂️ 나의 설교 씨앗 & 절별·장별 묵상 자료 보관함</h3>
+        <button class="btn-icon" onclick="closeModal('modal-sermon-archive')">✕ 닫기</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border-color);">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;" id="archive-filter-bar">
+          <button class="btn-icon active" onclick="renderSermonArchiveList('ALL')">전체 보기</button>
+          <button class="btn-icon" onclick="renderSermonArchiveList('설교씨앗')">🌱 #설교씨앗</button>
+          <button class="btn-icon" onclick="renderSermonArchiveList('주해/원어')">🔍 #주해/원어</button>
+          <button class="btn-icon" onclick="renderSermonArchiveList('예화/적용')">💡 #예화/적용</button>
+          <button class="btn-icon" onclick="renderSermonArchiveList('기도/묵상')">🙏 #기도/묵상</button>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-icon" onclick="copyAllSermonSeedsToClipboard()">📋 전체 클립보드 복사</button>
+          <button class="btn-icon active" onclick="downloadAllMemosMarkdown()">📥 설교 자료 마크다운(.md) 저장</button>
+        </div>
+      </div>
+      <div id="sermon-archive-body" style="max-height:60vh; overflow-y:auto; font-size:13.8px; line-height:1.65;"></div>
+    </div>
+  </div>
+
   <!-- 성경 데이터 로드 -->
   <script src="bible_story_data.js"></script>
   <script>
@@ -1291,6 +1458,8 @@
       readChapters: {},         // { "창:1": true, ... }
       highlights: {},           // { "창:1:1": true }
       memos: {},                // { "창:1": "..." }
+      verseMemos: {},           // { "창:1:1": { text, tag, updatedAt, verseText } }
+      bookIntroOpen: null,      // null (auto: open on ch 1) | true | false
       expandedActs: { 1: true }
     };
 
@@ -1333,6 +1502,7 @@
           state.readChapters = Object.assign({}, state.readChapters, json.data.readChapters || {});
           state.highlights = Object.assign({}, state.highlights, json.data.highlights || {});
           state.memos = Object.assign({}, state.memos, json.data.memos || {});
+          state.verseMemos = Object.assign({}, state.verseMemos || {}, json.data.verseMemos || {});
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           renderSidebar();
           loadEpisodeOrChapter();
@@ -1686,6 +1856,74 @@
       return !isMobileDevice && !isRemoteWeb;
     }
 
+    let lastRenderedBookForIntro = null;
+
+    function toggleBookIntroCard() {
+      const body = document.getElementById('ui-book-intro-body');
+      const btn = document.getElementById('ui-book-intro-toggle-btn');
+      if (!body || !btn) return;
+      const isHidden = body.style.display === 'none';
+      body.style.display = isHidden ? 'block' : 'none';
+      btn.textContent = isHidden ? '▲ 개론 접기' : '▼ 개론 펼치기';
+    }
+
+    function renderBookIntroBanner(bAbbr, chNum) {
+      const card = document.getElementById('ui-book-intro-card');
+      const titleEl = document.getElementById('ui-book-intro-title');
+      const bodyEl = document.getElementById('ui-book-intro-body');
+      const btnEl = document.getElementById('ui-book-intro-toggle-btn');
+      if (!card || !titleEl || !bodyEl) return;
+
+      const intros = (window.BIBLE_STORY_DATA && window.BIBLE_STORY_DATA.book_intros) || {};
+      const intro = intros[bAbbr];
+      const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+      if (!intro) {
+        card.style.display = 'none';
+        return;
+      }
+
+      card.style.display = 'block';
+      titleEl.innerHTML = `📘 <span>${escapeHtml(bName)} 성경 개론 (저자 · 기록연대 · 핵심주제 · 구조 · 그리스도)</span>`;
+      bodyEl.innerHTML = `
+        <div class="book-intro-meta-grid">
+          <div class="book-intro-meta-item">
+            <div class="book-intro-meta-label">✍️ 기록자 (저자)</div>
+            <div class="book-intro-meta-val">${escapeHtml(intro.author)}</div>
+          </div>
+          <div class="book-intro-meta-item">
+            <div class="book-intro-meta-label">⏳ 기록 연대 & 배경 시기</div>
+            <div class="book-intro-meta-val">${escapeHtml(intro.date)}</div>
+          </div>
+          <div class="book-intro-meta-item" style="grid-column: 1 / -1;">
+            <div class="book-intro-meta-label">🎯 핵심 주제 (Core Theme)</div>
+            <div class="book-intro-meta-val" style="color:var(--accent);">${escapeHtml(intro.theme)}</div>
+          </div>
+          <div class="book-intro-meta-item" style="grid-column: 1 / -1;">
+            <div class="book-intro-meta-label">🏗️ 성경 전체 구조 (Outline)</div>
+            <div class="book-intro-meta-val">${escapeHtml(intro.structure)}</div>
+          </div>
+        </div>
+        <div style="background:var(--bg-card); border-left:4px solid #e11d48; padding:10px 12px; border-radius:8px; margin-bottom:10px;">
+          <strong style="color:#e11d48;">✝️ 이 성경에 나타난 예수 그리스도:</strong><br>
+          ${escapeHtml(intro.christ)}
+        </div>
+        <div style="background:var(--bg-card); border-left:4px solid #0284c7; padding:10px 12px; border-radius:8px;">
+          <strong style="color:#0284c7;">📖 ${escapeHtml(bName)} 총체적 이해 & 통독 길잡이:</strong><br>
+          ${escapeHtml(intro.overview)}
+        </div>
+      `;
+
+      // 각 성경이 시작할 때(1장)나 새로운 성경책으로 진입했을 때 자동으로 펼쳐서 보여줌
+      if (chNum === 1 || lastRenderedBookForIntro !== bAbbr) {
+        bodyEl.style.display = 'block';
+        if (btnEl) btnEl.textContent = '▲ 개론 접기';
+      } else {
+        bodyEl.style.display = 'none';
+        if (btnEl) btnEl.textContent = '▼ 개론 펼치기';
+      }
+      lastRenderedBookForIntro = bAbbr;
+    }
+
     function renderScriptureBody() {
       const bAbbr = state.currentBook;
       const chNum = state.currentChapter;
@@ -1693,6 +1931,7 @@
       const chKey = `${bAbbr}:${chNum}`;
 
       document.getElementById('ui-chapter-heading').textContent = `${bName} ${chNum}장`;
+      renderBookIntroBanner(bAbbr, chNum);
 
       const isDone = !!state.readChapters[chKey];
       const topBtn = document.getElementById('btn-ch-check');
@@ -1739,6 +1978,7 @@
       const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
       const bodyEl = document.getElementById('ui-bible-body');
       bodyEl.className = `bible-body mode-${state.readingMode} ${state.hideVerseNum ? 'hide-vnum' : ''}`;
+      state.verseMemos = state.verseMemos || {};
 
       if (state.readingMode === 'story') {
         // 스토리북 문단 모드: 소제목(h)이나 대화/단락 흐름에 따라 자연스러운 문단으로 묶어 표시
@@ -1746,13 +1986,17 @@
         verses.forEach((v, idx) => {
           const vKey = `${bAbbr}:${chNum}:${v.v}`;
           const hl = state.highlights[vKey] ? 'highlighted' : '';
+          const vMemo = state.verseMemos[vKey];
           if (v.h) {
             if (idx > 0) html += '</div>';
             html += `<div class="pericope-heading">🔖 ${escapeHtml(v.h)}</div><div class="story-paragraph">`;
           } else if (idx > 0 && idx % 5 === 0) {
             html += '</div><div class="story-paragraph">';
           }
-          html += `<span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}</span><span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span><span class="v-text ${hl}" id="v-el-${idx}">${renderInteractiveWords(v.t, bAbbr)}</span> `;
+          html += `<span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}</span><span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span><span class="vm-btn ${vMemo ? 'has-memo' : ''}" title="이 절에 설교·묵상 메모 남기기" onclick="openVerseMemoModal('${bAbbr}', ${chNum}, ${v.v})">${vMemo ? '📌' : '📝'}</span><span class="v-text ${hl}" id="v-el-${idx}">${renderInteractiveWords(v.t, bAbbr, chNum, v.v)}</span> `;
+          if (vMemo && vMemo.text) {
+            html += `<div class="verse-memo-inline" onclick="openVerseMemoModal('${bAbbr}', ${chNum}, ${v.v})" style="cursor:pointer;" title="클릭하여 절 메모 수정"><div><span class="verse-memo-tag">#${escapeHtml(vMemo.tag || '설교씨앗')}</span><strong>[${bName} ${chNum}:${v.v} 메모]</strong> ${escapeHtml(vMemo.text)}</div><span style="font-size:11px; color:var(--text-muted); white-space:nowrap;">✎ 수정</span></div>`;
+          }
         });
         html += '</div>';
         bodyEl.innerHTML = html;
@@ -1762,13 +2006,17 @@
         verses.forEach((v, idx) => {
           const vKey = `${bAbbr}:${chNum}:${v.v}`;
           const hl = state.highlights[vKey] ? 'highlighted' : '';
+          const vMemo = state.verseMemos[vKey];
           if (v.h) {
             html += `<div class="pericope-heading">🔖 ${escapeHtml(v.h)}</div>`;
           }
           html += `
-            <div class="verse-row" id="v-el-${idx}">
-              <span class="v-num" style="cursor:pointer;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}절 <span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="event.stopPropagation(); toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span></span>
-              <span class="v-text ${hl}" id="v-el-txt-${idx}">${renderInteractiveWords(v.t, bAbbr)}</span>
+            <div class="verse-row" id="v-el-${idx}" style="flex-direction:column; gap:4px;">
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <span class="v-num" style="cursor:pointer; min-width:58px;" title="이 절부터 낭독 듣기" onclick="startSpeechFrom(${idx})">${v.v}절 <span class="hl-btn" title="이 구절 형광펜 밑줄" onclick="event.stopPropagation(); toggleHighlightById('${vKey}', 'v-el-${idx}')">🖍️</span><span class="vm-btn ${vMemo ? 'has-memo' : ''}" title="이 절에 설교·묵상 메모 남기기" onclick="event.stopPropagation(); openVerseMemoModal('${bAbbr}', ${chNum}, ${v.v})">${vMemo ? '📌' : '📝'}</span></span>
+                <span class="v-text ${hl}" id="v-el-txt-${idx}" style="flex:1;">${renderInteractiveWords(v.t, bAbbr, chNum, v.v)}</span>
+              </div>
+              ${(vMemo && vMemo.text) ? `<div class="verse-memo-inline" onclick="openVerseMemoModal('${bAbbr}', ${chNum}, ${v.v})" style="cursor:pointer; margin-left:58px;" title="클릭하여 절 메모 수정"><div><span class="verse-memo-tag">#${escapeHtml(vMemo.tag || '설교씨앗')}</span>${escapeHtml(vMemo.text)}</div><span style="font-size:11px; color:var(--text-muted); white-space:nowrap;">✎ 수정</span></div>` : ''}
             </div>
           `;
         });
@@ -2246,13 +2494,14 @@
         readChapters: state.readChapters,
         highlights: state.highlights,
         memos: state.memos,
+        verseMemos: state.verseMemos || {},
         currentEpId: state.currentEpId,
         currentBook: state.currentBook,
         currentChapter: state.currentChapter
       };
       const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
       navigator.clipboard.writeText(code).then(() => {
-        alert('통독 진도 & 묵상 코드가 클립보드에 복사되었습니다!\n스마트폰이나 다른 컴퓨터에서 [진도 코드 붙여넣기]를 눌러 붙여넣으시면 그대로 이어집니다.');
+        alert('통독 진도 & 묵상·설교 메모 코드가 클립보드에 복사되었습니다!\n스마트폰이나 다른 컴퓨터에서 [진도 코드 붙여넣기]를 눌러 붙여넣으시면 그대로 이어집니다.');
       });
     }
 
@@ -2264,6 +2513,7 @@
         state.readChapters = Object.assign({}, state.readChapters, decoded.readChapters || {});
         state.highlights = Object.assign({}, state.highlights, decoded.highlights || {});
         state.memos = Object.assign({}, state.memos, decoded.memos || {});
+        state.verseMemos = Object.assign({}, state.verseMemos || {}, decoded.verseMemos || {});
         if (decoded.currentEpId) state.currentEpId = decoded.currentEpId;
         if (decoded.currentBook) state.currentBook = decoded.currentBook;
         if (decoded.currentChapter) state.currentChapter = decoded.currentChapter;
@@ -2271,29 +2521,194 @@
         loadEpisodeOrChapter();
         renderSidebar();
         updateProgressUI();
-        alert('성공적으로 통독 진도와 묵상 노트가 동기화되었습니다!');
+        alert('성공적으로 통독 진도와 절별 설교·묵상 노트가 동기화되었습니다!');
       } catch (e) {
         alert('올바르지 않은 진도 코드입니다.');
       }
     }
 
-    function downloadAllMemosMarkdown() {
-      const keys = Object.keys(state.memos);
-      if (keys.length === 0) {
-        alert('아직 작성된 묵상 노트가 없습니다.');
+    // =========================================================================
+    // 절별(Verse-by-Verse) 메모 & 설교 씨앗(Sermon Seed) 보관함 관리
+    // =========================================================================
+    let activeVerseMemoTarget = null; // { b, c, v, vText }
+    let activeVerseMemoTag = '설교씨앗';
+
+    function selectVerseMemoTag(tag) {
+      activeVerseMemoTag = tag;
+      document.querySelectorAll('#vm-tag-buttons button').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tag') === tag);
+      });
+    }
+
+    function openVerseMemoModal(bAbbr, chNum, vNum) {
+      state.verseMemos = state.verseMemos || {};
+      const vKey = `${bAbbr}:${chNum}:${vNum}`;
+      const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+      const verses = (window.BIBLE_STORY_DATA.bible[bAbbr] && window.BIBLE_STORY_DATA.bible[bAbbr][String(chNum)]) || [];
+      const vObj = verses.find(x => x.v === vNum) || {};
+      const vText = vObj.t || '';
+
+      activeVerseMemoTarget = { b: bAbbr, c: chNum, v: vNum, vKey, bName, vText };
+      document.getElementById('vm-modal-title').textContent = `📝 ${bName} ${chNum}:${vNum} 절별 설교·묵상 메모`;
+      document.getElementById('vm-verse-preview').innerHTML = `<strong style="color:var(--accent);">${escapeHtml(bName)} ${chNum}:${vNum}</strong> "${escapeHtml(vText)}"`;
+
+      const existing = state.verseMemos[vKey];
+      selectVerseMemoTag((existing && existing.tag) ? existing.tag : '설교씨앗');
+      const ta = document.getElementById('vm-textarea');
+      ta.value = (existing && existing.text) ? existing.text : '';
+      openModal('modal-verse-memo');
+      setTimeout(() => ta.focus(), 80);
+    }
+
+    function saveCurrentVerseMemo() {
+      if (!activeVerseMemoTarget) return;
+      state.verseMemos = state.verseMemos || {};
+      const text = document.getElementById('vm-textarea').value.trim();
+      const { vKey, vText } = activeVerseMemoTarget;
+      if (text) {
+        state.verseMemos[vKey] = {
+          text,
+          tag: activeVerseMemoTag || '설교씨앗',
+          verseText: vText,
+          updatedAt: new Date().toISOString().slice(0, 10)
+        };
+      } else {
+        delete state.verseMemos[vKey];
+      }
+      saveState();
+      renderScriptureBody();
+      closeModal('modal-verse-memo');
+    }
+
+    function deleteCurrentVerseMemo() {
+      if (!activeVerseMemoTarget) return;
+      state.verseMemos = state.verseMemos || {};
+      delete state.verseMemos[activeVerseMemoTarget.vKey];
+      saveState();
+      renderScriptureBody();
+      closeModal('modal-verse-memo');
+    }
+
+    function openSermonArchiveModal() {
+      renderSermonArchiveList('ALL');
+      openModal('modal-sermon-archive');
+    }
+
+    function renderSermonArchiveList(filterTag = 'ALL') {
+      document.querySelectorAll('#archive-filter-bar button').forEach(btn => {
+        const txt = btn.textContent || '';
+        const isMatch = (filterTag === 'ALL' && txt.includes('전체')) || (filterTag !== 'ALL' && txt.includes(filterTag));
+        btn.classList.toggle('active', isMatch);
+      });
+
+      const box = document.getElementById('sermon-archive-body');
+      state.verseMemos = state.verseMemos || {};
+      const vKeys = Object.keys(state.verseMemos);
+      const chKeys = Object.keys(state.memos || {});
+
+      const filteredVKeys = vKeys.filter(k => {
+        const item = state.verseMemos[k];
+        if (!item || !item.text) return false;
+        if (filterTag === 'ALL') return true;
+        return (item.tag || '설교씨앗') === filterTag;
+      });
+
+      if (filteredVKeys.length === 0 && (filterTag !== 'ALL' || chKeys.length === 0)) {
+        box.innerHTML = `<div style="text-align:center; padding:30px 16px; color:var(--text-muted);">아직 저장된 설교·묵상 메모가 없습니다.<br>본문을 읽으시면서 각 절 옆의 <strong>📝 버튼</strong>을 눌러 설교 씨앗이나 통찰을 기록해 보세요!</div>`;
         return;
       }
-      let md = `---\ntype: "bible-story-notes"\ncreated: "${new Date().toISOString().slice(0,10)}"\ntags:\n  - 성경통독\n  - 스토리성경\n  - 묵상\n---\n\n# 📖 스토리 성경통독 묵상 기록장\n\n`;
-      keys.forEach(k => {
-        const [abbr, ch] = k.split(':');
-        const bName = BOOK_MAP[abbr] ? BOOK_MAP[abbr].name : abbr;
-        md += `## ${bName} ${ch}장\n\n${state.memos[k]}\n\n---\n\n`;
+
+      let html = '';
+      if (filteredVKeys.length > 0) {
+        html += `<div style="font-weight:800; font-size:14px; color:var(--accent); margin-bottom:10px;">📌 절별 설교 씨앗 & 주해 메모 (${filteredVKeys.length}건)</div>`;
+        filteredVKeys.forEach(k => {
+          const [bAbbr, ch, v] = k.split(':');
+          const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+          const item = state.verseMemos[k];
+          html += `
+            <div style="background:var(--bg-main); border:1px solid var(--border-color); border-left:4px solid var(--accent); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                <div>
+                  <span class="verse-memo-tag">#${escapeHtml(item.tag || '설교씨앗')}</span>
+                  <strong style="font-size:14px; color:var(--accent); cursor:pointer;" onclick="closeModal('modal-sermon-archive'); selectBookDirect('${bAbbr}', ${Number(ch)})">${escapeHtml(bName)} ${ch}:${v} 바로가기 →</strong>
+                </div>
+                <span style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(item.updatedAt || '')}</span>
+              </div>
+              ${item.verseText ? `<div style="font-family:var(--reader-font); font-size:13px; color:var(--text-secondary); margin-bottom:6px; padding-left:8px; border-left:2px solid var(--border-color);">"${escapeHtml(item.verseText)}"</div>` : ''}
+              <div style="font-size:14px; font-weight:600; color:var(--text-primary); white-space:pre-wrap;">${escapeHtml(item.text)}</div>
+            </div>
+          `;
+        });
+      }
+
+      if (filterTag === 'ALL' && chKeys.length > 0) {
+        html += `<div style="font-weight:800; font-size:14px; color:#0284c7; margin:18px 0 10px;">📖 장별(Chapter) 통독 묵상 노트 (${chKeys.length}건)</div>`;
+        chKeys.forEach(k => {
+          const [bAbbr, ch] = k.split(':');
+          const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+          html += `
+            <div style="background:var(--bg-main); border:1px solid var(--border-color); border-left:4px solid #0284c7; border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+              <div style="font-weight:800; font-size:14px; color:#0284c7; cursor:pointer; margin-bottom:4px;" onclick="closeModal('modal-sermon-archive'); selectBookDirect('${bAbbr}', ${Number(ch)})">${escapeHtml(bName)} ${ch}장 전체 묵상 →</div>
+              <div style="font-size:13.8px; color:var(--text-primary); white-space:pre-wrap;">${escapeHtml(state.memos[k])}</div>
+            </div>
+          `;
+        });
+      }
+
+      box.innerHTML = html;
+    }
+
+    function buildSermonNotesMarkdown() {
+      state.verseMemos = state.verseMemos || {};
+      const vKeys = Object.keys(state.verseMemos);
+      const chKeys = Object.keys(state.memos || {});
+      if (vKeys.length === 0 && chKeys.length === 0) return '';
+
+      let md = `---\ntype: "bible-sermon-seeds"\ncreated: "${new Date().toISOString().slice(0,10)}"\ntags:\n  - 설교자료\n  - 성경통독\n  - 절별묵상\n---\n\n# 📖 스토리 성경통독 — 설교 씨앗 & 절별·장별 묵상 자료집\n\n`;
+      if (vKeys.length > 0) {
+        md += `## 📌 1. 절별 설교 씨앗 & 주해 메모 (${vKeys.length}건)\n\n`;
+        vKeys.forEach(k => {
+          const [bAbbr, ch, v] = k.split(':');
+          const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+          const item = state.verseMemos[k];
+          md += `### [${bName} ${ch}:${v}] #${item.tag || '설교씨앗'} (${item.updatedAt || ''})\n`;
+          if (item.verseText) md += `> "${item.verseText}"\n\n`;
+          md += `${item.text}\n\n---\n\n`;
+        });
+      }
+      if (chKeys.length > 0) {
+        md += `## 📖 2. 장별 통독 묵상 기록 (${chKeys.length}건)\n\n`;
+        chKeys.forEach(k => {
+          const [bAbbr, ch] = k.split(':');
+          const bName = BOOK_MAP[bAbbr] ? BOOK_MAP[bAbbr].name : bAbbr;
+          md += `### ${bName} ${ch}장\n\n${state.memos[k]}\n\n---\n\n`;
+        });
+      }
+      return md;
+    }
+
+    function copyAllSermonSeedsToClipboard() {
+      const md = buildSermonNotesMarkdown();
+      if (!md) {
+        alert('아직 작성된 절별 메모나 묵상 노트가 없습니다.');
+        return;
+      }
+      navigator.clipboard.writeText(md).then(() => {
+        alert('모든 절별 설교 씨앗과 장별 묵상 노트가 마크다운 형식으로 복사되었습니다!\n옵시디언이나 설교 원고에 바로 붙여넣으실 수 있습니다.');
       });
+    }
+
+    function downloadAllMemosMarkdown() {
+      const md = buildSermonNotesMarkdown();
+      if (!md) {
+        alert('아직 작성된 절별 메모나 묵상 노트가 없습니다.');
+        return;
+      }
       const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `스토리_성경통독_묵상노트_${new Date().toISOString().slice(0,10)}.md`;
+      a.download = `설교자료_스토리성경_묵상노트_${new Date().toISOString().slice(0,10)}.md`;
       a.click();
     }
 
@@ -3066,16 +3481,20 @@
     ];
 
     const LEX_LOOKUP = {};
-    BIBLICAL_LEXICON.forEach(entry => {
-      entry.keys.forEach(k => {
-        LEX_LOOKUP[k] = entry;
+    function buildLexiconLookup() {
+      const combined = [].concat(BIBLICAL_LEXICON, (window.BIBLE_STORY_DATA && window.BIBLE_STORY_DATA.lexicon) || []);
+      combined.forEach(entry => {
+        (entry.keys || []).forEach(k => {
+          if (!LEX_LOOKUP[k]) LEX_LOOKUP[k] = entry;
+        });
       });
-    });
+      return combined;
+    }
 
     function stripKoreanJosa(word) {
       const clean = word.replace(/[^가-힣]/g, '');
       if (clean.length <= 2) return clean;
-      const josaList = ['께서도', '에서는', '에게서', '으로만', '이라도', '하시니라', '하였더라', '하시며', '하시고', '께서', '에서', '에게', '으로', '라고', '이나', '처럼', '까지', '부터', '보다', '마다', '조차', '은', '는', '이', '가', '을', '를', '의', '에', '로', '와', '과', '도', '만', '며', '고'];
+      const josaList = ['께서도', '에서는', '에게서', '으로만', '이라도', '하시니라', '하였더라', '하시며', '하시고', '하시되', '하신', '께서', '에서', '에게', '으로', '라고', '이나', '처럼', '까지', '부터', '보다', '마다', '조차', '은', '는', '이', '가', '을', '를', '의', '에', '로', '와', '과', '도', '만', '며', '고'];
       for (const j of josaList) {
         if (clean.endsWith(j) && clean.length - j.length >= 2) {
           return clean.slice(0, clean.length - j.length);
@@ -3087,12 +3506,14 @@
     function findLexiconEntry(rawToken) {
       const clean = rawToken.replace(/[^가-힣]/g, '');
       if (!clean) return null;
+      const allEntries = Object.keys(LEX_LOOKUP).length > 0 ? null : buildLexiconLookup();
       if (LEX_LOOKUP[clean]) return LEX_LOOKUP[clean];
       const stem = stripKoreanJosa(clean);
       if (LEX_LOOKUP[stem]) return LEX_LOOKUP[stem];
-      for (const entry of BIBLICAL_LEXICON) {
+      const list = allEntries || [].concat(BIBLICAL_LEXICON, (window.BIBLE_STORY_DATA && window.BIBLE_STORY_DATA.lexicon) || []);
+      for (const entry of list) {
         for (const k of entry.keys) {
-          if (k.length >= 2 && (clean.startsWith(k) || stem === k)) {
+          if (k.length >= 2 && (clean.startsWith(k) || stem === k || stem.startsWith(k) || k.startsWith(stem))) {
             return entry;
           }
         }
@@ -3100,7 +3521,7 @@
       return null;
     }
 
-    function renderInteractiveWords(text, bookAbbr) {
+    function renderInteractiveWords(text, bookAbbr, chNum = 1, vNum = 1) {
       if (!text) return '';
       const tokens = text.split(/(\s+)/);
       return tokens.map(tok => {
@@ -3108,11 +3529,90 @@
         const lex = findLexiconEntry(tok);
         const cls = lex ? 'w-token has-lex' : 'w-token';
         const safeTok = escapeHtml(tok);
-        return `<span class="${cls}" onclick="openWordStudyModal('${safeTok.replace(/'/g, "\\'")}', '${bookAbbr}')">${safeTok}</span>`;
+        return `<span class="${cls}" onclick="openWordStudyModal('${safeTok.replace(/'/g, "\\'")}', '${bookAbbr}', ${chNum}, ${vNum})">${safeTok}</span>`;
       }).join('');
     }
 
-    function openWordStudyModal(clickedWord, currentBookAbbr) {
+    async function fetchUniversalOriginalAndEnglish(cleanWord, stem, currentBookAbbr, chNum, vNum) {
+      const dynBox = document.getElementById('ws-dynamic-lex-box');
+      if (!dynBox) return;
+
+      const bList = (window.BIBLE_STORY_DATA && window.BIBLE_STORY_DATA.books) || [];
+      const bIndex = bList.findIndex(x => x.abbr === currentBookAbbr);
+      const bookId = bIndex >= 0 ? (bIndex + 1) : 1;
+      const isOT = bookId <= 39;
+      const bMeta = BOOK_MAP[currentBookAbbr] || { name: currentBookAbbr, testament: isOT ? '구약' : '신약' };
+
+      try {
+        // 1) 클릭한 단어/어근의 영어 의미 및 히브리어/헬라어 원어 번역 조회 + 2) 해당 절의 영어 성경(KJV/WEB) 및 히브리어(WLC)/헬라어(TISCH) 원문 성경 실시간 병렬 조회
+        const origLangCode = isOT ? 'iw' : 'el';
+        const wordEnUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&dt=bd&q=${encodeURIComponent(stem)}`;
+        const wordOrigUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=${origLangCode}&dt=t&q=${encodeURIComponent(stem)}`;
+        const bollsEngUrl = `https://bolls.life/get-verse/WEB/${bookId}/${chNum}/${vNum}/`;
+        const bollsOrigUrl = `https://bolls.life/get-verse/${isOT ? 'WLC' : 'TISCH'}/${bookId}/${chNum}/${vNum}/`;
+
+        const [wEnRes, wOrigRes, vEnRes, vOrigRes] = await Promise.allSettled([
+          fetch(wordEnUrl).then(r => r.json()),
+          fetch(wordOrigUrl).then(r => r.json()),
+          fetch(bollsEngUrl).then(r => r.json()),
+          fetch(bollsOrigUrl).then(r => r.json())
+        ]);
+
+        let engWord = '';
+        let engSyn = '';
+        if (wEnRes.status === 'fulfilled' && wEnRes.value) {
+          engWord = (wEnRes.value[0] && wEnRes.value[0][0] && wEnRes.value[0][0][0]) || '';
+          if (wEnRes.value[1] && wEnRes.value[1][0] && wEnRes.value[1][0][1]) {
+            engSyn = wEnRes.value[1][0][1].slice(0, 4).join(', ');
+          }
+        }
+
+        let origWord = '';
+        if (wOrigRes.status === 'fulfilled' && wOrigRes.value) {
+          origWord = (wOrigRes.value[0] && wOrigRes.value[0][0] && wOrigRes.value[0][0][0]) || '';
+        }
+
+        let engVerseText = '';
+        if (vEnRes.status === 'fulfilled' && vEnRes.value && vEnRes.value.text) {
+          engVerseText = vEnRes.value.text.replace(/<[^>]*>/g, '').trim();
+        }
+
+        let origVerseText = '';
+        if (vOrigRes.status === 'fulfilled' && vOrigRes.value && vOrigRes.value.text) {
+          origVerseText = vOrigRes.value.text.replace(/<[^>]*>/g, '').trim();
+        }
+
+        dynBox.innerHTML = `
+          <div style="font-size:15.5px; font-weight:800; color:var(--accent); margin-bottom:10px;">
+            📖 "${escapeHtml(cleanWord)}" (핵심 어근: ${escapeHtml(stem)}) 원어 & 영어 대조 분석
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(185px, 1fr)); gap:8px; margin-bottom:12px;">
+            <div style="background:var(--bg-card); padding:9px 11px; border-radius:8px; border:1px solid var(--border-color);">
+              <div style="font-size:11px; color:var(--text-muted); font-weight:700;">영어(English) 단어 뜻</div>
+              <div style="font-size:14.5px; font-weight:800; color:#0284c7; margin-top:2px;">${escapeHtml(engWord || stem)}${engSyn ? ` <span style="font-size:12px; font-weight:600; color:var(--text-secondary);">(${escapeHtml(engSyn)})</span>` : ''}</div>
+            </div>
+            <div style="background:var(--bg-card); padding:9px 11px; border-radius:8px; border:1px solid var(--border-color);">
+              <div style="font-size:11px; color:var(--text-muted); font-weight:700;">${isOT ? '구약 히브리어(Hebrew) 어휘' : '신약 헬라어(Greek) 어휘'}</div>
+              <div style="font-size:15px; font-weight:800; color:#d97706; margin-top:2px;">${escapeHtml(origWord || (isOT ? '히브리어 본문 참조' : '헬라어 본문 참조'))}</div>
+            </div>
+          </div>
+          ${(origVerseText || engVerseText) ? `
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.6;">
+              <div style="font-weight:800; color:var(--text-secondary); margin-bottom:4px;">📜 ${escapeHtml(bMeta.name)} ${chNum}:${vNum} 원문 성경 & 영어 성경 대조</div>
+              ${origVerseText ? `<div style="margin-bottom:4px;"><span style="font-weight:700; color:#d97706;">[${isOT ? '히브리어 원문(WLC)' : '헬라어 원문(NT)'}]</span> <span style="font-size:14.5px; font-family:serif;">${escapeHtml(origVerseText)}</span></div>` : ''}
+              ${engVerseText ? `<div><span style="font-weight:700; color:#0284c7;">[영어 성경(WEB)]</span> ${escapeHtml(engVerseText)}</div>` : ''}
+            </div>
+          ` : ''}
+        `;
+      } catch (err) {
+        dynBox.innerHTML = `
+          <div style="font-size:14px; font-weight:700; color:var(--accent);">🔎 어근 분석: "${escapeHtml(cleanWord)}" → 핵심 어근 "${escapeHtml(stem)}"</div>
+          <div style="font-size:12.5px; color:var(--text-secondary); margin-top:4px;">아래 성경 66권 구약·신약 전체 용례를 통해 이 단어가 성경에서 어떻게 쓰였는지 비교해 보세요.</div>
+        `;
+      }
+    }
+
+    function openWordStudyModal(clickedWord, currentBookAbbr, chNum = state.currentChapter, vNum = 1) {
       const cleanWord = clickedWord.replace(/[^가-힣]/g, '');
       if (!cleanWord) return;
       const lex = findLexiconEntry(cleanWord);
@@ -3170,8 +3670,8 @@
         `;
       } else {
         lexHtml = `
-          <div style="background:var(--bg-main); border:1px solid var(--border-color); border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:13.5px;">
-            <strong>🔎 어근 추출 분석:</strong> <code>${escapeHtml(clickedWord)}</code> → 핵심 어근 <strong>"${escapeHtml(searchTerm)}"</strong> 중심으로 성경 66권 전체 용례를 비교합니다.
+          <div id="ws-dynamic-lex-box" style="background:var(--bg-main); border:1px solid var(--border-color); border-left:4px solid var(--accent); border-radius:12px; padding:14px; margin-bottom:16px; font-size:13.5px;">
+            ⏳ <strong>"${escapeHtml(cleanWord)}"</strong> (핵심 어근: <strong>${escapeHtml(searchTerm)}</strong>)의 영어·히브리어·헬라어 원어 뜻과 본문 대조 데이터를 불러오는 중입니다...
           </div>
         `;
       }
@@ -3207,6 +3707,9 @@
       `;
 
       openModal('modal-word-study');
+      if (!lex) {
+        fetchUniversalOriginalAndEnglish(cleanWord, searchTerm, currentBookAbbr, chNum, vNum);
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
